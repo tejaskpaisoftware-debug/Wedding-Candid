@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 const testimonials = [
   {
     name: 'Aashvi & Tej',
+    image: '/images/gallery/aashvi-tej/sq5/WC__9621.jpg',
     quote: "We wanted to thank you for all the hardwork that you and your team did for us throughout the wedding. Our memories are going to be created through you guys. Thanks for being so easy going and enjoying it with us. You and your team were amazing and keep up with this work.",
     location: 'Wedding Celebration'
   },
@@ -54,6 +55,12 @@ const testimonials = [
       <main class="testimonial-rail">
         {testimonials.map((t, i) => (
           <div class="testimonial-gate">
+            {i % 2 !== 0 && t.image && (
+              <div class="testimonial-side-image pull-left" data-scroll-reveal>
+                <img src={t.image} alt={t.name} loading="lazy" />
+              </div>
+            )}
+            
             <div 
               class={`testimonial-float-card ${i % 2 === 0 ? 'pull-left' : 'pull-right'}`}
               data-scroll-reveal
@@ -67,6 +74,12 @@ const testimonials = [
                 <h3 class="author-name">{t.name}</h3>
               </div>
             </div>
+
+            {i % 2 === 0 && t.image && (
+              <div class="testimonial-side-image pull-right" data-scroll-reveal>
+                <img src={t.image} alt={t.name} loading="lazy" />
+              </div>
+            )}
           </div>
         ))}
       </main>
@@ -145,6 +158,20 @@ const testimonials = [
   .author-name { font-family: var(--font-sans); font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink); margin-bottom: 0.5rem; }
   .author-loc { font-family: var(--font-sans); font-size: 0.65rem; letter-spacing: 0.2em; color: rgba(0,0,0,0.5); text-transform: uppercase; }
 
+  .testimonial-side-image {
+    max-width: 45vw;
+    width: 600px;
+    height: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.05);
+    opacity: 0; transform: translateY(60px); transition: all 1.2s var(--ease);
+  }
+  .testimonial-side-image.visible { opacity: 1; transform: translateY(0); }
+  .testimonial-side-image img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+
   /* Stats */
   .test-stats-grid { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.05); padding: 3rem 0; margin: 3vh 5vw; }
   .stat-box { text-align: center; }
@@ -159,7 +186,9 @@ const testimonials = [
   .booking-cta-btn:hover { background: var(--gold); color: var(--ink); }
 
   @media (max-width: 900px) {
-    .testimonial-float-card { padding: 1.5rem 2rem; margin: 0 auto; width: 90%; }
+    .testimonial-gate { flex-direction: column; gap: 2.5rem; padding: 2rem 0; }
+    .testimonial-float-card { padding: 1.5rem 2rem; margin: 0 auto; width: 90%; order: 1; }
+    .testimonial-side-image { width: 90%; max-width: none; height: 350px; margin: 0 auto; order: 2; }
     .pull-left, .pull-right { margin: 0 auto; }
   }
 </style>
