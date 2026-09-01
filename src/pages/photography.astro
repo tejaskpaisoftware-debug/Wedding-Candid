@@ -1,0 +1,164 @@
+---
+import Layout from '../layouts/Layout.astro';
+import OptimizedImage from '../components/OptimizedImage.astro';
+
+/**
+ * photography.astro — The Central Hub (Decision Stage)
+ * Three immersive gateways to specialized photography branches.
+ */
+
+const SECTIONS = [
+  {
+    id: 'wedding',
+    title: 'WEDDINGS',
+    subtitle: 'THE INTIMATE ARCHIVE',
+    image: '/images/gallery/quick-portfolio/WC__8428.jpg',
+    link: '/photography/wedding',
+    description: 'Formal, vertical, emotional storytelling.'
+  },
+  {
+    id: 'pre-wedding',
+    title: 'PRE-WEDDINGS',
+    subtitle: 'THE CINEMATIC JOURNEY',
+    image: '/images/gallery/quick-portfolio/IMG_4312.jpg',
+    link: '/photography/pre-wedding',
+    description: 'Adventurous, horizontal, film-reel memories.'
+  },
+  {
+    id: 'bw',
+    title: 'B/W NOIR',
+    subtitle: 'THE NOIR ARCHIVE',
+    image: '/images/gallery/quick-portfolio/bw_noir_cover.png',
+    link: '/photography/bw',
+    description: 'The depth of light, shadow, and timeless elegance.'
+  },
+  {
+    id: 'event',
+    title: 'EVENTS',
+    subtitle: 'MOMENTS IN MOTION',
+    image: '/Event_deep/02 Aditya Gadhvi/IMG_1410.jpg',
+    link: '/photography/events',
+    description: 'Corporate, life, and the energy of now.'
+  }
+];
+---
+
+<Layout hideGlobalPreloader={true} navTheme="light">
+  <article class="photo-hub">
+    <div class="hub-container">
+      {SECTIONS.map((sec, i) => (
+        <a href={sec.link} class={`hub-panel panel-${sec.id}`}>
+          <div class="panel-bg">
+            <OptimizedImage src={sec.image} alt={sec.title} class="w-full h-full object-cover" />
+            <div class="panel-overlay"></div>
+          </div>
+          <div class="panel-content">
+            <span class="panel-tag">{sec.subtitle}</span>
+            <h2 class="panel-title">{sec.title}</h2>
+            <p class="panel-desc">{sec.description}</p>
+            <div class="explore-hint">EXPLORE EXHIBITION →</div>
+          </div>
+          <div class="panel-line"></div>
+        </a>
+      ))}
+    </div>
+  </article>
+</Layout>
+
+<style>
+  :root {
+    --paper: #f5f1eb; /* Light theme beige */
+    --dark: #1a1814;
+    --gold: #b68b40;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .photo-hub { height: 100vh; background: var(--paper); overflow: hidden; }
+  .hub-container { display: flex; height: 100%; width: 100%; }
+
+  .hub-panel { 
+    flex: 1; position: relative; display: flex; align-items: center; justify-content: center; 
+    text-decoration: none; overflow: hidden; transition: flex 0.8s var(--ease);
+    border-right: 1px solid rgba(0,0,0,0.05);
+  }
+  .hub-panel:last-child { border-right: none; }
+  .hub-panel:hover { flex: 1.5; }
+
+  .panel-bg { position: absolute; inset: 0; z-index: 1; }
+  .panel-bg img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.85) grayscale(100%); transition: 0.8s var(--ease); }
+  .hub-panel:hover .panel-bg img { filter: brightness(1) grayscale(0%); transform: scale(1.05); }
+  .panel-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(245,241,235, 0.99) 0%, rgba(245,241,235, 0.92) 40%, rgba(245,241,235, 0.65) 75%, rgba(245,241,235, 0.25) 100%); opacity: 0.92; transition: opacity 0.8s var(--ease); }
+  .hub-panel:hover .panel-overlay { opacity: 0.65; }
+  
+  .panel-content { position: relative; z-index: 5; text-align: center; color: var(--dark); padding: 2rem; transition: transform 0.6s var(--ease); }
+  .hub-panel:hover .panel-content { transform: translateY(-20px); }
+
+  .panel-tag { 
+    font-family: var(--font-sans); 
+    font-size: 0.68rem; 
+    font-weight: 600; 
+    color: var(--gold); 
+    letter-spacing: 0.4em; 
+    display: block; 
+    margin-bottom: 2.5rem; 
+    text-shadow: 0 2px 12px rgba(245, 241, 235, 0.99), 0 1px 4px rgba(245, 241, 235, 0.95);
+  }
+  .panel-title { font-family: var(--font-serif); font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; letter-spacing: 0.1em; transition: 0.6s; color: var(--dark); }
+  .hub-panel:hover .panel-title { color: #000; letter-spacing: 0.15em; }
+  
+  .panel-desc { 
+    font-family: var(--font-sans); 
+    font-size: 0.76rem; 
+    font-weight: 500;
+    color: rgba(26, 24, 20, 0.85); 
+    margin-top: 1.5rem; 
+    opacity: 0; 
+    transform: translateY(10px); 
+    transition: 0.6s 0.2s var(--ease); 
+    text-shadow: 0 2px 12px rgba(245, 241, 235, 0.99), 0 1px 4px rgba(245, 241, 235, 0.95);
+  }
+  .hub-panel:hover .panel-desc { opacity: 1; transform: translateY(0); }
+
+  .explore-hint { 
+    font-family: var(--font-sans); 
+    font-size: 0.68rem; 
+    font-weight: 600;
+    color: var(--gold); 
+    letter-spacing: 0.25em; 
+    margin-top: 3.5rem; 
+    opacity: 0; 
+    transition: 0.6s 0.3s; 
+    text-shadow: 0 2px 12px rgba(245, 241, 235, 0.99), 0 1px 4px rgba(245, 241, 235, 0.95);
+  }
+  .hub-panel:hover {
+    .explore-hint { opacity: 1; }
+  }
+
+  .panel-line { position: absolute; bottom: 0; left: 0; width: 0; height: 3px; background: var(--gold); transition: width 0.8s var(--ease); }
+  .hub-panel:hover .panel-line { width: 100%; }
+
+  @media (max-width: 900px) {
+    .photo-hub {
+      height: auto;
+      overflow: visible;
+      padding-top: 64px; /* Account for the 64px fixed mobile navbar */
+    }
+    .hub-container {
+      flex-direction: column;
+      height: auto;
+    }
+    .hub-panel {
+      height: 25vh;
+      min-height: 220px;
+      flex: none;
+      border-right: none;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .hub-panel:hover {
+      flex: none;
+    }
+    .panel-overlay {
+      background: linear-gradient(to right, rgba(245,241,235, 0.99) 0%, rgba(245,241,235, 0.92) 40%, rgba(245,241,235, 0.65) 75%, rgba(245,241,235, 0.25) 100%);
+    }
+  }
+</style>

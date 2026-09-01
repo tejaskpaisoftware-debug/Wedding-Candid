@@ -1,0 +1,151 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import OptimizedImage from '../../components/OptimizedImage.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+/**
+ * photography/events.astro — Dynamic Event Archive
+ * Vertical formal masonry with Iris Reveals
+ */
+
+const eventDeepDir = path.resolve('./public/Event_deep');
+let eventFolders = [];
+try {
+  eventFolders = fs.readdirSync(eventDeepDir)
+    .filter(f => !f.startsWith('.') && fs.lstatSync(path.join(eventDeepDir, f)).isDirectory())
+    .sort();
+} catch (e) {
+  console.error("Failed to read Event_deep directory", e);
+}
+
+const EVENTS = eventFolders.map(folder => {
+  const folderPath = path.join(eventDeepDir, folder);
+  const images = fs.readdirSync(folderPath)
+    .filter(f => !f.startsWith('.') && /\.(jpe?g|png|webp)$/i.test(f));
+  
+  // Choose a cover image. Specific choices for the best visual impact.
+  let coverFile = images[0];
+  if (folder.includes('Sachin - Jigar')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+  if (folder.includes('Aditya Gadhvi')) coverFile = images.find(f => f.includes('1410')) || images[0];
+  if (folder.includes('Sagarwali')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+  if (folder.includes('King')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+  if (folder.includes('Dino')) coverFile = images.find(f => f.includes('14460')) || images[0];
+  if (folder.includes('Umesh barot')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+  if (folder.includes('Srushti Tawade')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+  if (folder.includes('Rito riba')) coverFile = images.find(f => f.includes('7817')) || images[0];
+
+  const cleanName = folder.replace(/^\d+\s+/, '');
+  const slug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  return {
+    id: slug,
+    folderName: folder,
+    names: cleanName,
+    cover: `/Event_deep/${folder}/${coverFile}`,
+    shortQuote: 'Capturing the Rhythm of the Night'
+  };
+});
+---
+
+<Layout hideGlobalPreloader={true}>
+  <div class="exhibition-page">
+    <nav class="sub-nav">
+      <h1 class="page-title">CANDID <em>EVENTS</em></h1>
+    </nav>
+
+    <main class="exhibition-content">
+      <div class="events-grid">
+        {EVENTS.map((event, i) => (
+          <a href={`/events/${event.id}`} class="event-card">
+            <div class="event-img-wrap">
+              <OptimizedImage src={event.cover} alt={event.names} loading="eager" class="w-full h-full object-cover" />
+              <div class="event-overlay"><span>View Gallery →</span></div>
+            </div>
+            <div class="event-info">
+              <p class="event-tag">The Essence of</p>
+              <h3 class="event-name">
+                {event.names.includes(' - ') ? (
+                  <>
+                    {event.names.split(' - ')[0]} <em>&</em> {event.names.split(' - ')[1]}
+                  </>
+                ) : (
+                  event.names
+                )}
+              </h3>
+              <p class="event-mini-quote">{event.shortQuote}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  :root {
+    --paper: #fdfbf9;
+    --ink: #1a1410;
+    --gold: #b68b40;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .exhibition-page { background: var(--paper); color: var(--ink); min-height: 100vh; }
+  
+  .sub-nav { display: flex; justify-content: center; align-items: center; padding: 6rem 5vw 2rem; border-bottom: 1px solid rgba(0,0,0,0.05); position: sticky; top: 0; background: var(--paper); z-index: 100; }
+  .page-title { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 300; }
+  .page-title em { font-style: italic; color: var(--gold); }
+
+  .exhibition-content { padding: 6rem 5vw 10rem; }
+  .events-grid { display: flex; flex-direction: column; gap: 8rem; max-width: 1300px; margin: 0 auto; }
+  
+  .event-card { display: flex; align-items: center; gap: 6vw; text-decoration: none; color: inherit; opacity: 0; transform: translateY(40px); }
+  .event-card:nth-child(even) { flex-direction: row-reverse; }
+  .event-img-wrap { flex: 1.4; position: relative; border-radius: 0; overflow: hidden; aspect-ratio: 16/10; }
+  .event-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
+  .event-card:hover img { transform: scale(1.05); }
+  .event-info { flex: 1; }
+  .event-card:nth-child(even) .event-info { text-align: right; align-items: flex-end; }
+  .event-name { font-family: var(--font-serif); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 400; margin: 1rem 0; line-height: 1.2; transition: 0.6s; }
+  .event-name em { font-style: italic; color: var(--gold); }
+  .event-card:hover .event-name { letter-spacing: 0.05em; color: var(--gold); }
+  .event-tag { font-family: var(--font-sans); font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
+  .event-mini-quote { font-family: var(--font-sans); font-size: 0.8rem; color: #8a7e72; letter-spacing: 0.1em; }
+  
+  .event-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.4s; }
+  .event-card:hover .event-overlay { opacity: 1; }
+  .event-overlay span { color: white; font-family: var(--font-sans); font-size: 0.7rem; letter-spacing: 0.2em; border-bottom: 1px solid white; }
+
+  @media (max-width: 768px) {
+    .sub-nav {
+      position: static !important;
+      padding: 6.5rem 4vw 1.5rem !important;
+    }
+    .exhibition-content { padding: 4rem 4vw 6rem; }
+    .events-grid { gap: 4rem; }
+    .event-card { flex-direction: column !important; gap: 1.5rem; }
+    .event-card:nth-child(even) { flex-direction: column !important; }
+    .event-info { text-align: left !important; }
+    .event-card:nth-child(even) .event-info { text-align: left !important; }
+  }
+</style>
+
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script is:inline>
+  document.addEventListener('astro:page-load', () => {
+    if (typeof gsap === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.to('.event-card', { 
+      opacity: 1, 
+      y: 0, 
+      stagger: 0.15, 
+      duration: 1.2, 
+      ease: "power3.out", 
+      scrollTrigger: { 
+        trigger: '.events-grid', 
+        start: "top 85%" 
+      } 
+    });
+  });
+</script>

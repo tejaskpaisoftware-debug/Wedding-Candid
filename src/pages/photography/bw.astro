@@ -1,0 +1,705 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import OptimizedImage from '../../components/OptimizedImage.astro';
+import { getImage } from 'astro:assets';
+
+const BW_IMAGES = [
+  '/images/gallery/bw/083A4644.jpg',
+  '/images/gallery/bw/0Z7A9267.jpg',
+  '/images/gallery/bw/1M0A1615.jpg',
+  '/images/gallery/bw/1M0A1620.jpg',
+  '/images/gallery/bw/1M0A1626.jpg',
+  '/images/gallery/bw/1M0A1711.jpg',
+  '/images/gallery/bw/1M0A2869.jpg',
+  '/images/gallery/bw/4W0A9414.jpg',
+  '/images/gallery/bw/DJI_0685.jpg',
+  '/images/gallery/bw/DJI_20241209184936_0125_D_FLYCAPTURE.jpg',
+  '/images/gallery/bw/IMG_3125.jpg',
+  '/images/gallery/bw/IMG_4351.jpg',
+  '/images/gallery/bw/IMG_4585.jpg',
+  '/images/gallery/bw/SAM_0133.jpg',
+  '/images/gallery/bw/SAM_2957.jpg',
+  '/images/gallery/bw/SDPH1884.jpg',
+  '/images/gallery/bw/SDPH2160-2.jpg',
+  '/images/gallery/bw/SDPH3641.jpg',
+  '/images/gallery/bw/WC_13261.jpg',
+  '/images/gallery/bw/WC_18568.JPG',
+  '/images/gallery/bw/WC__1280.jpg',
+  '/images/gallery/bw/WC__2447.jpg',
+  '/images/gallery/bw/WC__2582-2.jpg',
+  '/images/gallery/bw/WC__4332.jpg',
+  '/images/gallery/bw/WC__5051.jpg',
+  '/images/gallery/bw/WC__5899.jpg',
+  '/images/gallery/bw/WC__6266.jpg',
+  '/images/gallery/bw/WC__7145.jpg',
+  '/images/gallery/bw/WC__7520-2.jpg',
+  '/images/gallery/bw/WC__9683.jpg'
+];
+
+// Theme-Separating Super-Dispersal Engine for string arrays
+function parseImageSequence(path) {
+  const parts = path.split('/');
+  const filename = parts[parts.length - 1].split('.')[0];
+  const matches = filename.match(/\d+/g);
+  const num = matches ? parseInt(matches[matches.length - 1], 10) : 0;
+  
+  let prefix = filename;
+  if (matches) {
+    const lastMatch = matches[matches.length - 1];
+    const lastIdx = filename.lastIndexOf(lastMatch);
+    prefix = filename.substring(0, lastIdx) + filename.substring(lastIdx + lastMatch.length);
+  }
+  return { prefix, num };
+}
+
+function getSimilarityWeight(path1, path2) {
+  const img1 = parseImageSequence(path1);
+  const img2 = parseImageSequence(path2);
+  const dir1 = path1.split('/').slice(0, -1).join('/');
+  const dir2 = path2.split('/').slice(0, -1).join('/');
+  if (dir1 !== dir2) return 0;
+
+  if (img1.prefix === img2.prefix) {
+    const diff = Math.abs(img1.num - img2.num);
+    // Continuous smooth decay weight: very high for close matches, fades out slowly over a wide range
+    return Math.max(0, 1000 / (1 + diff / 30));
+  }
+  return 0;
+}
+
+function getPathHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
+function disperseImageStrings(images) {
+  if (images.length <= 1) return images;
+  const pool = [...images];
+  const result = [];
+
+  // Seed pool deterministically
+  pool.sort((a, b) => getPathHash(a) - getPathHash(b));
+
+  while (pool.length > 0) {
+    let bestIdx = 0;
+    let minPenalty = Infinity;
+
+    for (let i = 0; i < pool.length; i++) {
+      let penalty = 0;
+      // Look back much further (up to 12 elements) to disperse sequential poses completely
+      const lookback = Math.min(result.length, 12);
+      for (let j = 0; j < lookback; j++) {
+        const placed = result[result.length - 1 - j];
+        const weight = getSimilarityWeight(pool[i], placed);
+        // Slower decay factor so matches further back still push current choice away
+        const decay = 1 / Math.sqrt(j + 1);
+        penalty += weight * decay;
+      }
+      // Add a tiny deterministic tiebreaker based on hash
+      penalty += (getPathHash(pool[i]) % 100) / 10000;
+
+      if (penalty < minPenalty) {
+        minPenalty = penalty;
+        bestIdx = i;
+      }
+    }
+    result.push(pool.splice(bestIdx, 1)[0]);
+  }
+  return result;
+}
+
+const finalShuffledBW = disperseImageStrings(BW_IMAGES);
+
+const globImages = import.meta.glob<{ default: ImageMetadata }>('/public/images/gallery/bw/**/*.{jpeg,jpg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}');
+
+const loadedBWImages = await Promise.all(finalShuffledBW.map(async (src) => {
+  const globKey = `/public${src}`;
+  if (globImages[globKey]) {
+    try {
+      const mod = await globImages[globKey]();
+      const metadata = mod.default;
+      const optimized = await getImage({
+        src: metadata,
+        width: 1600,
+        format: 'webp',
+        quality: 85
+      });
+      return {
+        src,
+        metadata,
+        optimized: optimized.src
+      };
+    } catch(e) {
+      console.error(`Failed to load metadata for ${src}`, e);
+    }
+  }
+  return {
+    src,
+    metadata: null,
+    optimized: src
+  };
+}));
+---
+
+<Layout navTheme="light" hideGlobalPreloader={true}>
+  <article class="bw-exhibition">
+    <header class="bw-header">
+      <h1 class="bw-title">Noir <em>Stories</em></h1>
+      <p class="bw-subtitle">The depth of light & shadow</p>
+    </header>
+
+    <!-- Gallery — Masonry like story-gallery-sec -->
+    <section class="bw-gallery-sec" id="gallery-section">
+      <div class="gallery-heading">
+        <span class="heading-label">MONOCHROME ARCHIVE</span>
+        <div class="heading-rule animate-on-scroll"></div>
+      </div>
+
+      <div class="masonry-grid">
+        {loadedBWImages.map((img, i) => {
+          const ratio = img.metadata ? `${img.metadata.width}/${img.metadata.height}` : '3/4';
+          return (
+            <div class="gallery-item" data-index={i + 1} data-full={img.optimized} style={`aspect-ratio: ${ratio}`}>
+              <div class="gallery-item-inner">
+                <OptimizedImage src={img.src} alt={`Noir Stories — ${i + 1}`} loading="lazy" class="w-full h-full object-cover" />
+                <div class="grain-overlay"></div>
+                <div class="item-hover-info">
+                  <span class="item-names">Noir Stories</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+
+    <footer class="bw-footer">
+      <span>— Monochrome Archive —</span>
+    </footer>
+
+    <!-- Scroll Progress -->
+    <div id="scrollProgress" class="fixed-progress">
+      
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="premium-lightbox" hidden>
+      <div class="lb-header">
+        
+        <button class="lb-close">✕</button>
+      </div>
+      <div class="lb-stage">
+        <button class="lb-arrow prev">&#8592;</button>
+        <div class="lb-img-wrap">
+          <img id="lbBg" class="lb-bg" src="" alt="" aria-hidden="true" />
+          <div class="watermark-container lb-watermark-wrap">
+                        <img id="lbImg" src="" alt="View" />
+                      </div>
+        </div>
+        <button class="lb-arrow next">&#8594;</button>
+      </div>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  :root {
+    --paper: #f5f1eb;
+    --ink:   #1a1814;
+    --gold:  #b68b40;
+    --muted: #8a7e72;
+    --ease:  cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .bw-exhibition {
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 120px 0 0;
+  }
+
+  /* ── Header ── */
+  .bw-header {
+    text-align: center;
+    margin-bottom: 60px;
+    padding: 0 5vw;
+  }
+  .bw-title {
+    font-family: var(--font-serif);
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 1rem;
+    color: var(--ink);
+  }
+  .bw-title em { font-style: italic; color: var(--gold); }
+  .bw-subtitle {
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    opacity: 0.5;
+  }
+
+  /* ── Gallery Section ── */
+  .bw-gallery-sec { padding: 4rem 5vw 6rem; }
+
+  .gallery-heading { margin-bottom: 3rem; }
+  .heading-label {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+  }
+  .heading-rule {
+    width: 0;
+    height: 1px;
+    background: var(--gold);
+    margin-top: 1rem;
+  }
+
+  /* ── Masonry Grid (same as story-gallery-sec) ── */
+  .masonry-grid {
+    column-count: 3;
+    column-gap: 1.5rem;
+  }
+  @media (max-width: 1024px) { .masonry-grid { column-count: 2; } }
+  @media (max-width: 640px)  { .masonry-grid { column-count: 1; } }
+
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .gallery-item-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    cursor: zoom-in;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* Grayscale — the BW identity */
+    filter: grayscale(100%) contrast(1.1);
+    transition: transform 0.8s var(--ease), filter 0.6s;
+  }
+  .gallery-item:hover img {
+    transform: scale(1.03);
+    filter: grayscale(80%) contrast(1.05);
+  }
+
+  /* Grain overlay — same as story-gallery-sec */
+  .grain-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stichTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  }
+
+  /* Hover info — same as story-gallery-sec */
+  .item-hover-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    opacity: 0;
+    transition: 0.4s;
+  }
+  .gallery-item:hover .item-hover-info { opacity: 1; }
+  .item-names {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .item-index {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  /* ── Footer ── */
+  .bw-footer {
+    text-align: center;
+    padding: 80px 20px;
+    font-family: var(--font-serif);
+    letter-spacing: 0.4em;
+    opacity: 0.3;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+  }
+
+  /* ── Scroll Progress — same as story-gallery-sec ── */
+  .fixed-progress {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    opacity: 0;
+    transition: 0.4s;
+  }
+
+  /* ── Lightbox — unified light theme ── */
+  .premium-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: rgba(245, 242, 237, 0.97);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.4s var(--ease);
+  }
+  .premium-lightbox.open { opacity: 1; visibility: visible; }
+
+  .lb-header {
+    height: 64px;
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .lb-close {
+    background: none;
+    border: none;
+    color: var(--ink);
+    font-size: 1.5rem;
+    cursor: pointer;
+    opacity: 0.5; transition: opacity 0.2s; padding: 0.3rem;
+  }
+  .lb-close:hover { opacity: 1; }
+
+  .lb-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0; gap: 0; min-height: 0; position: relative; overflow: hidden; }
+  .lb-img-wrap { flex: 1; display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; position: relative; overflow: visible; transform: scale(1); transition: 0.55s var(--ease); }
+  .premium-lightbox.open .lb-img-wrap { transform: scale(1); }
+
+  .lb-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(80px) brightness(0.4) grayscale(100%);
+    opacity: 0;
+    transition: opacity 0.8s var(--ease);
+    z-index: 1;
+    transform: scale(1.1);
+  }
+  
+  /* Lightbox watermark wrapper — must NOT clip the image */
+  .lb-img-wrap .lb-watermark-wrap {
+    overflow: visible !important;
+    max-width: calc(100vw - 160px);
+    max-height: calc(100vh - 80px);
+    width: auto !important;
+    height: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lb-img-wrap img#lbImg { 
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - 160px);
+    max-height: calc(100vh - 80px);
+    object-fit: contain;
+    border-radius: 2px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    filter: grayscale(100%) contrast(1.1);
+    transition: opacity 0.3s ease, transform 0.5s var(--ease);
+  }
+
+  /* Orientation Logic - only control background opacity, never crop image */
+  .premium-lightbox.is-landscape .lb-bg {
+    opacity: 0;
+  }
+
+  .premium-lightbox.is-portrait .lb-bg {
+    opacity: 1;
+  }
+  .lb-arrow {
+    background: white; border: 1px solid rgba(0,0,0,0.12); color: var(--ink); font-size: 1.3rem; cursor: pointer; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.25s, border-color 0.25s, transform 0.2s, color 0.25s; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .lb-arrow:hover { background: var(--gold); border-color: var(--gold); color: white; transform: scale(1.08); }
+  @media (max-width: 768px) { 
+    .lb-stage { padding: 10px; position: relative !important; } 
+    .lb-header { padding: 0 1.2rem; }
+    
+    .lb-img-wrap .lb-watermark-wrap {
+      max-width: calc(100vw - 24px) !important;
+      max-height: calc(100vh - 160px) !important;
+    }
+    .lb-img-wrap img#lbImg {
+      max-width: calc(100vw - 24px) !important;
+      max-height: calc(100vh - 160px) !important;
+    }
+    .lb-watermark-wrap {
+      max-width: calc(100vw - 24px) !important;
+      max-height: calc(100vh - 160px) !important;
+    }
+    .lb-watermark-wrap #lbImg {
+      max-width: calc(100vw - 24px) !important;
+      max-height: calc(100vh - 160px) !important;
+    }
+
+    .lb-arrow {
+      position: absolute !important;
+      bottom: 24px !important;
+      top: auto !important;
+      transform: none !important;
+      z-index: 100 !important;
+      background: rgba(255, 255, 255, 0.9) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      border: 1px solid rgba(0, 0, 0, 0.05) !important;
+      width: 48px !important;
+      height: 48px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-shrink: 0 !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+    }
+    .lb-arrow.prev {
+      left: calc(50% - 64px) !important;
+    }
+    .lb-arrow.next {
+      right: calc(50% - 64px) !important;
+    }
+    .lb-arrow:hover {
+      background: var(--gold) !important;
+      color: white !important;
+      transform: scale(1.05) !important;
+    }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  document.addEventListener('astro:page-load', () => {
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Animate heading rule
+    ScrollTrigger.batch('.animate-on-scroll', {
+      onEnter: batch => gsap.to(batch, { width: '80px', duration: 1, stagger: 0.2, ease: 'power2.out' }),
+      start: 'top 85%'
+    });
+
+    // Scroll progress tracker
+    const items = document.querySelectorAll('.gallery-item');
+    const progressText = document.getElementById('scrollProgress');
+    // counter removed
+
+    ScrollTrigger.create({
+      trigger: '.bw-gallery-sec',
+      start: 'top 50%',
+      end: 'bottom 50%',
+      onEnter: () => gsap.to(progressText, { opacity: 1 }),
+      onLeave: () => gsap.to(progressText, { opacity: 0 }),
+      onEnterBack: () => gsap.to(progressText, { opacity: 1 }),
+      onLeaveBack: () => gsap.to(progressText, { opacity: 0 })
+    });
+
+    const visObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // counter removed
+        }
+      });
+    }, { threshold: 0.6 });
+    items.forEach(item => visObserver.observe(item));
+
+    // Lightbox
+    const lightbox = document.getElementById('lightbox');
+    const lbImg    = document.getElementById('lbImg');
+    const lbBg     = document.getElementById('lbBg');
+    const lbCounter = lightbox.querySelector('.lb-counter');
+    const closeLb  = lightbox.querySelector('.lb-close');
+    const prevBtn  = lightbox.querySelector('.lb-arrow.prev');
+    const nextBtn  = lightbox.querySelector('.lb-arrow.next');
+    
+    const allImgs = Array.from(items).map(i => i.getAttribute('data-full') || i.querySelector('img').src);
+    const total = allImgs.length;
+    let cIdx = 0;
+
+    function preloadAdjacent() {
+      if (total <= 1) return;
+      const toPreload = [
+        (cIdx + 1) % total,
+        (cIdx + 2) % total,
+        (cIdx - 1 + total) % total,
+        (cIdx - 2 + total) % total
+      ];
+      toPreload.forEach(idx => {
+        const url = allImgs[idx];
+        if (url) {
+          const img = new Image();
+          img.src = url;
+        }
+      });
+    }
+
+    function updateLb() {
+      const src = allImgs[cIdx];
+      lbImg.src = src;
+      lbBg.src  = src;
+      if (lbCounter) {
+        lbCounter.textContent = String(cIdx + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+      }
+
+      // Detect orientation
+      const tempImg = new Image();
+      tempImg.src = src;
+      tempImg.onload = () => {
+        lightbox.classList.remove('is-landscape', 'is-portrait');
+        if (tempImg.naturalWidth > tempImg.naturalHeight) {
+          lightbox.classList.add('is-landscape');
+        } else {
+          lightbox.classList.add('is-portrait');
+        }
+      };
+      
+      preloadAdjacent();
+    }
+
+    function openLb(i) {
+      cIdx = i;
+      updateLb();
+      lightbox.removeAttribute('hidden');
+      requestAnimationFrame(() => lightbox.classList.add('open'));
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLbFn() {
+      lightbox.classList.remove('open');
+      setTimeout(() => { lightbox.setAttribute('hidden', ''); document.body.style.overflow = ''; }, 420);
+    }
+    function navigate(dir) {
+      cIdx = (cIdx + dir + total) % total;
+      
+      gsap.to(lbImg, {
+        x: dir > 0 ? -60 : 60,
+        opacity: 0,
+        duration: 0.2,
+        ease: "power2.in",
+        onComplete: () => {
+          updateLb();
+          gsap.set(lbImg, { x: dir > 0 ? 60 : -60, opacity: 0 });
+          gsap.to(lbImg, {
+            x: 0,
+            opacity: 1,
+            duration: 0.25,
+            ease: "power2.out"
+          });
+        }
+      });
+
+      gsap.to(lbBg, {
+        opacity: 0,
+        duration: 0.2,
+        onComplete: () => {
+          lbBg.src = allImgs[cIdx];
+          gsap.to(lbBg, {
+            opacity: lightbox.classList.contains('is-portrait') ? 1 : 0,
+            duration: 0.25
+          });
+        }
+      });
+    }
+
+    items.forEach((item, i) => item.addEventListener('click', () => openLb(i)));
+    closeLb.addEventListener('click', closeLbFn);
+    prevBtn.addEventListener('click', () => navigate(-1));
+    nextBtn.addEventListener('click', () => navigate(1));
+
+    // Swipe gestures
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let isSwiping = false;
+
+    lightbox.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isSwiping = true;
+    }, { passive: true });
+
+    lightbox.addEventListener('touchmove', e => {
+      if (!isSwiping) return;
+      touchEndX = e.touches[0].clientX;
+      touchEndY = e.touches[0].clientY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        gsap.set(lbImg, { x: deltaX * 0.4 });
+      }
+    }, { passive: true });
+
+    lightbox.addEventListener('touchend', e => {
+      if (!isSwiping) return;
+      isSwiping = false;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      const threshold = 60;
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
+        if (deltaX < 0) {
+          navigate(1);
+        } else {
+          navigate(-1);
+        }
+      } else {
+        gsap.to(lbImg, { x: 0, duration: 0.2, ease: "power2.out" });
+      }
+      touchStartX = 0;
+      touchStartY = 0;
+      touchEndX = 0;
+      touchEndY = 0;
+    }, { passive: true });
+
+    lightbox.addEventListener('click', e => {
+      if (Math.abs(touchEndX - touchStartX) > 10) return;
+      if (e.target === lightbox || e.target.classList.contains('lb-stage') || e.target.classList.contains('lb-img-wrap')) {
+        closeLbFn();
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'ArrowLeft') navigate(-1);
+      if (e.key === 'ArrowRight') navigate(1);
+      if (e.key === 'Escape') closeLbFn();
+    });
+  });
+</script>

@@ -1,0 +1,97 @@
+---
+/**
+ * HorizontalGallery.astro
+ * Horizontal scrolling image gallery.
+ */
+import OptimizedImage from './OptimizedImage.astro';
+---
+<section class="horizontal-scroll-section relative h-[100vh] flex flex-col justify-center bg-neutral-50 overflow-hidden" id="horizontal-scroll-container">
+  <!-- Section Title -->
+  <div class="px-6 md:px-20 mb-12 flex flex-col items-start gap-4 flex-shrink-0">
+    <span class="text-xs tracking-[0.6em] text-accent font-sans uppercase font-medium">CURATED</span>
+    <h2 class="text-5xl md:text-7xl font-serif text-neutral-900 leading-tight">
+      THE INTIMATE <br /> <span class="italic">COLLECTION</span>
+    </h2>
+  </div>
+
+  <!-- Smooth Horizontal Scrolling Content -->
+  <div class="horizontal-content-wrapper w-full relative">
+    <div class="horizontal-scroll-container flex items-center gap-12 px-6 md:px-20 w-max" id="horizontal-track">
+      <div class="gallery-card w-[320px] md:w-[450px] aspect-[4/5] overflow-hidden flex-shrink-0 relative group rounded-sm shadow-xl">
+        <OptimizedImage src="/images/gallery/opt/WC__6391.webp" alt="Gallery Photo 1" class="w-full h-full object-cover grayscale brightness-90 contrast-[0.9] transition-all duration-[2s] ease-out group-hover:scale-110 group-hover:grayscale-0 group-hover:brightness-100" />
+        <div class="absolute inset-0 bg-black/10 transition-opacity duration-1000 group-hover:opacity-0"></div>
+      </div>
+      <div class="gallery-card w-[320px] md:w-[450px] aspect-[4/5] overflow-hidden flex-shrink-0 relative group rounded-sm shadow-xl">
+        <OptimizedImage src="/images/gallery/opt/CB8A0325.webp" alt="Gallery Photo 2" class="w-full h-full object-cover grayscale brightness-90 contrast-[0.9] transition-all duration-[2s] ease-out group-hover:scale-110 group-hover:grayscale-0 group-hover:brightness-100" />
+        <div class="absolute inset-0 bg-black/10 transition-opacity duration-1000 group-hover:opacity-0"></div>
+      </div>
+      <div class="gallery-card w-[320px] md:w-[450px] aspect-[4/5] overflow-hidden flex-shrink-0 relative group rounded-sm shadow-xl">
+        <OptimizedImage src="/images/gallery/opt/WC__8428.webp" alt="Gallery Photo 3" class="w-full h-full object-cover grayscale brightness-90 contrast-[0.9] transition-all duration-[2s] ease-out group-hover:scale-110 group-hover:grayscale-0 group-hover:brightness-100" />
+        <div class="absolute inset-0 bg-black/10 transition-opacity duration-1000 group-hover:opacity-0"></div>
+      </div>
+      <div class="gallery-card w-[320px] md:w-[450px] aspect-[4/5] overflow-hidden flex-shrink-0 relative group rounded-sm shadow-xl">
+        <OptimizedImage src="/images/gallery/opt/MBJ_5953.webp" alt="Gallery Photo 4" class="w-full h-full object-cover grayscale brightness-90 contrast-[0.9] transition-all duration-[2s] ease-out group-hover:scale-110 group-hover:grayscale-0 group-hover:brightness-100" />
+        <div class="absolute inset-0 bg-black/10 transition-opacity duration-1000 group-hover:opacity-0"></div>
+      </div>
+      <div class="gallery-card w-[320px] md:w-[450px] aspect-[4/5] overflow-hidden flex-shrink-0 relative group rounded-sm shadow-xl">
+        <OptimizedImage src="/images/gallery/opt/WC_17407.webp" alt="Gallery Photo 5" class="w-full h-full object-cover grayscale brightness-90 contrast-[0.9] transition-all duration-[2s] ease-out group-hover:scale-110 group-hover:grayscale-0 group-hover:brightness-100" />
+        <div class="absolute inset-0 bg-black/10 transition-opacity duration-1000 group-hover:opacity-0"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  function initHorizontalGallery() {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const horizontalTrack = document.querySelector('#horizontal-track');
+    const horizontalSection = document.querySelector('#horizontal-scroll-container');
+
+    if (horizontalTrack && horizontalSection) {
+      // ── KILL PREVIOUS ─────────────────────────────────
+      ScrollTrigger.getAll().forEach(st => {
+        if (st.trigger === horizontalSection) st.kill();
+      });
+
+      const getScrollAmount = () => -(horizontalTrack.scrollWidth - window.innerWidth);
+
+      gsap.to(horizontalTrack, {
+        x: getScrollAmount,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: horizontalSection,
+          start: 'top top',
+          end: () => `+=${horizontalTrack.scrollWidth}`,
+          scrub: 1,
+          pin: true,
+          invalidateOnRefresh: true,
+        }
+      });
+
+      // Zoom on items when they enter center-view
+      const cards = document.querySelectorAll('.gallery-card');
+      cards.forEach((card) => {
+        const img = card.querySelector('img');
+        if (img) {
+          gsap.to(img, {
+            scale: 1.1,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: card,
+              start: 'left center',
+              end: 'right center',
+              scrub: true,
+              containerAnimation: ScrollTrigger.getAll().find(t => t.trigger === horizontalSection) // Required to trigger properly inside a pinned horizontal track
+            }
+          });
+        }
+      });
+    }
+  }
+
+  document.addEventListener('astro:page-load', initHorizontalGallery);
+</script>

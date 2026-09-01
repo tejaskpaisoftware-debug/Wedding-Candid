@@ -1,0 +1,220 @@
+---
+/**
+ * Enhanced Preloader.astro
+ * Multiple unique splash screen modes
+ */
+---
+<!-- Synchronous guard: show preloader ONLY on first page load before any paint -->
+<script is:inline>
+  (function() {
+    if (!sessionStorage.getItem('wc_splash_shown')) {
+      document.write('<style id="preloader-guard-styles">#about-preloader { display: flex !important; } #about-preloader .preloader-content { opacity: 0 !important; }</style>');
+    }
+  })();
+</script>
+<div id="about-preloader" class="fixed inset-0 z-[10000] bg-gradient-to-br from-neutral-50 via-white to-neutral-100 flex items-center justify-center overflow-hidden pointer-events-auto" style="display: none">
+
+  <!-- Mode 1: Camera Shutter Reveal -->
+  <div class="preloader-content shutter-mode flex flex-col items-center relative w-full h-full" id="shutter-mode">
+    <div class="shutter-blades absolute inset-0 pointer-events-none">
+      <div class="blade blade-1"></div>
+      <div class="blade blade-2"></div>
+      <div class="blade blade-3"></div>
+      <div class="blade blade-4"></div>
+      <div class="blade blade-5"></div>
+      <div class="blade blade-6"></div>
+      <div class="blade blade-7"></div>
+      <div class="blade blade-8"></div>
+    </div>
+    <div class="relative z-10 flex flex-col items-center">
+      <div class="camera-logo w-24 md:w-32 mb-8 overflow-hidden">
+        <img src="/03.png" alt="Photography Logo" class="w-full h-auto opacity-0 scale-50" id="preloader-logo" />
+      </div>
+      <div class="w-24 h-1 bg-gradient-to-r from-accent/30 to-accent rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-accent to-accent/70 w-0 shutter-progress" id="shutter-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode 2: Particle Burst -->
+  <div class="preloader-content particle-mode absolute inset-0 opacity-0 flex items-center justify-center" id="particle-mode">
+    <div class="particles-container w-64 h-64 relative">
+      <img src="/03.png" alt="Photography Logo" class="absolute inset-0 w-full h-full opacity-0 scale-0" id="particle-logo" />
+    </div>
+  </div>
+
+  <!-- Mode 3: Film Strip -->
+  <div class="preloader-content film-mode absolute inset-0 opacity-0 flex flex-col items-center justify-center" id="film-mode">
+    <div class="film-strip relative w-48 h-48">
+      <div class="film-perforations"></div>
+      <img src="/03.png" alt="Photography Logo" class="absolute inset-0 w-full h-full opacity-0" id="film-logo" />
+    </div>
+  </div>
+
+  <!-- Mode 4: Lens Flare -->
+  <div class="preloader-content lens-mode absolute inset-0 opacity-0 flex items-center justify-center" id="lens-mode">
+    <div class="lens-container relative w-32 h-32">
+      <div class="lens-flare absolute inset-0 bg-gradient-radial opacity-0"></div>
+      <img src="/03.png" alt="Photography Logo" class="absolute inset-0 w-full h-full opacity-0 scale-110" id="lens-logo" />
+    </div>
+  </div>
+
+  <!-- Mode 5: Polaroid Stack -->
+  <div class="preloader-content polaroid-mode absolute inset-0 opacity-0 flex flex-col items-center justify-center" id="polaroid-mode">
+    <div class="polaroids-container relative">
+      <div class="polaroid polaroid-1"></div>
+      <div class="polaroid polaroid-2"></div>
+      <div class="polaroid polaroid-3"></div>
+      <img src="/03.png" alt="Photography Logo" class="absolute -inset-2 w-full h-full opacity-0 scale-90" id="polaroid-logo" />
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Base Styles */
+  .preloader-content { @apply w-full h-full flex items-center justify-center; }
+  
+  /* Shutter Mode */
+  .shutter-blades { @apply w-full h-full; }
+  .blade {
+    @apply absolute bg-neutral-50/90;
+    clip-path: polygon(0% 45%, 100% 55%, 100% 100%, 0% 100%);
+  }
+  .blade-1 { @apply rotate-0 w-1/2 h-1/2 top-0 left-0; }
+  .blade-2 { @apply rotate-45 w-1/2 h-1/2 top-1/4 left-1/4; }
+  .blade-3 { @apply rotate-90 w-1/2 h-1/2 top-1/2 left-1/2; }
+  .blade-4 { @apply rotate-[135deg] w-1/2 h-1/2 top-3/4 left-3/4; }
+  .blade-5 { @apply rotate-180 w-1/2 h-1/2 top-full left-full; }
+  .blade-6 { @apply rotate-[225deg] w-1/2 h-1/2 bottom-1/4 right-1/4; }
+  .blade-7 { @apply rotate-[270deg] w-1/2 h-1/2 bottom-1/2 right-1/2; }
+  .blade-8 { @apply rotate-[315deg] w-1/2 h-1/2 bottom-3/4 right-3/4; }
+
+  /* Particle Mode */
+  .particles-container::before,
+  .particles-container::after {
+    content: '';
+    @apply absolute w-2 h-2 md:w-3 md:h-3 bg-accent rounded-full opacity-0 scale-0;
+  }
+
+  /* Film Mode */
+  .film-strip {
+    background: linear-gradient(90deg, #000 2px, transparent 2px, transparent 48px, #000 48px, #000 50px, transparent 50px, transparent 98px, #000 98px);
+    background-size: 100px 20px;
+    border: 4px solid #000;
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .film-perforations {
+    @apply absolute inset-0 opacity-0;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 20"><rect x="1" y="0" width="2" height="2" rx="1" fill="%23000"/><rect x="1" y="4" width="2" height="2" rx="1" fill="%23000"/><rect x="1" y="8" width="2" height="2" rx="1" fill="%23000"/><rect x="1" y="12" width="2" height="2" rx="1" fill="%23000"/><rect x="1" y="16" width="2" height="2" rx="1" fill="%23000"/></svg>');
+  }
+
+  /* Lens Flare */
+  .lens-flare {
+    background: radial-gradient(circle, rgba(59,130,246,0.8) 0%, transparent 70%);
+    filter: blur(16px);
+    border-radius: 50%;
+  }
+
+  /* Polaroid */
+  .polaroid {
+    @apply absolute w-24 h-32 md:w-32 md:h-40 bg-white shadow-2xl border-8 border-white/50 rounded-2xl;
+    background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  }
+  .polaroid-1 { @apply -top-4 left-4 rotate-[-5deg]; }
+  .polaroid-2 { @apply top-0 rotate-[3deg]; }
+  .polaroid-3 { @apply top-4 right-4 rotate-[7deg]; }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  function initPreloader() {
+    const SPLASH_KEY = 'wc_splash_shown';
+    const preloader = document.getElementById('about-preloader');
+
+    if (!preloader) return;
+
+    if (sessionStorage.getItem(SPLASH_KEY)) {
+      // ── Already shown this session: skip instantly ──────────────────────────
+      const guardStyles = document.getElementById('preloader-guard-styles');
+      if (guardStyles) guardStyles.remove();
+      preloader.remove();
+      document.body.classList.remove('overflow-hidden');
+      document.body.classList.remove('preloader-active');
+    } else {
+      // ── First visit: play the splash, then mark it as seen ──────────────────
+      sessionStorage.setItem(SPLASH_KEY, '1');
+      
+      // Keep preloader visible by setting inline display style before removing guard styles
+      preloader.style.display = 'flex';
+      const guardStyles = document.getElementById('preloader-guard-styles');
+      if (guardStyles) guardStyles.remove();
+
+      const SELECTED_MODE = 'shutter';
+
+      const modes = {
+        shutter: document.getElementById('shutter-mode'),
+        particle: document.getElementById('particle-mode'),
+        film: document.getElementById('film-mode'),
+        lens: document.getElementById('lens-mode'),
+        polaroid: document.getElementById('polaroid-mode')
+      };
+
+      const elements = {
+        logos: document.querySelectorAll('#preloader-logo, #particle-logo, #film-logo, #lens-logo, #polaroid-logo'),
+        shutterBar: document.getElementById('shutter-bar'),
+        filmPerfs: document.querySelector('.film-perforations')
+      };
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Hide all modes that aren't selected
+      Object.keys(modes).forEach(mode => {
+        if (mode !== SELECTED_MODE) gsap.set(modes[mode], { opacity: 0 });
+      });
+
+      // MODE 1: Camera Shutter (Default)
+      if (SELECTED_MODE === 'shutter') {
+        tl.to('.blade', { 
+          scaleY: 0, 
+          duration: 1.2, 
+          stagger: 0.08, 
+          ease: 'power3.out',
+          transformOrigin: 'center bottom'
+        })
+        .to(elements.shutterBar, { width: '100%', duration: 1.5, ease: 'power2.inOut' }, '-=0.8')
+        .to(elements.logos[0], { opacity: 1, scale: 1, duration: 1.2, ease: 'elastic.out(1, 0.5)' }, '-=1.2')
+        .to('.blade', { 
+          scaleY: 1, 
+          duration: 0.8, 
+          stagger: 0.06, 
+          ease: 'power2.out',
+          transformOrigin: 'center top'
+        })
+        .to(preloader, { 
+          scale: 1.1, 
+          rotate: -2, 
+          duration: 0.3, 
+          yoyo: true, 
+          repeat: 1 
+        })
+        .to(preloader, { yPercent: -100, duration: 1.2, ease: 'expo.inOut' });
+      }
+
+      // Lock scroll during animation
+      document.body.classList.add('overflow-hidden');
+
+      tl.eventCallback('onComplete', () => {
+        document.body.classList.remove('overflow-hidden');
+        document.body.classList.remove('preloader-active');
+        preloader.remove();
+      });
+
+      tl.play();
+    }
+  }
+
+  // Bind to Astro's page transition lifecycle
+  document.addEventListener('astro:page-load', initPreloader);
+</script>

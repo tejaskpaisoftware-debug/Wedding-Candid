@@ -1,0 +1,917 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import OptimizedImage from '../../components/OptimizedImage.astro';
+import { getImage } from 'astro:assets';
+import fs from 'node:fs';
+import path from 'node:path';
+
+export async function getStaticPaths() {
+  const eventDeepDir = path.resolve('./public/Event_deep');
+  let eventFolders = [];
+  try {
+    eventFolders = fs.readdirSync(eventDeepDir)
+      .filter(f => !f.startsWith('.') && fs.lstatSync(path.join(eventDeepDir, f)).isDirectory())
+      .sort();
+  } catch (e) {
+    console.error("Failed to read Event_deep directory", e);
+  }
+
+  return eventFolders.map((folder, index) => {
+    const cleanName = folder.replace(/^\d+\s+/, '');
+    const slug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    
+    // Get next event for navigation
+    const nextFolder = eventFolders[(index + 1) % eventFolders.length];
+    const nextCleanName = nextFolder.replace(/^\d+\s+/, '');
+    const nextSlug = nextCleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    // Pick cover image (same logic as events.astro)
+    const folderPath = path.join(eventDeepDir, folder);
+    const images = fs.readdirSync(folderPath)
+      .filter(f => !f.startsWith('.') && /\.(jpe?g|png|webp)$/i.test(f));
+    
+    let coverFile = images[0];
+    if (folder.includes('Sachin - Jigar')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+    if (folder.includes('Aditya Gadhvi')) coverFile = images.find(f => f.includes('1410')) || images[0];
+    if (folder.includes('Sagarwali')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+    if (folder.includes('King')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+    if (folder.includes('Dino')) coverFile = images.find(f => f.includes('14460')) || images[0];
+    if (folder.includes('Umesh barot')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+    if (folder.includes('Srushti Tawade')) coverFile = images.find(f => f.includes('event_cover')) || images[0];
+    if (folder.includes('Rito riba')) coverFile = images.find(f => f.includes('7817')) || images[0];
+
+    return {
+      params: { slug },
+      props: { 
+        event: {
+          slug,
+          folderName: folder,
+          name: cleanName,
+          cover: `/Event_deep/${folder}/${coverFile}`,
+          quote: "Capturing the energy, the emotion, and the essence of the moment.",
+          next: { slug: nextSlug, names: nextCleanName }
+        }
+      }
+    };
+  });
+}
+
+const { event } = Astro.props;
+
+// Fetch all images for this specific event
+const globImages = import.meta.glob<{ default: ImageMetadata }>('/public/Event_deep/**/*.{jpeg,jpg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}');
+const myImagesKeys = Object.keys(globImages).filter(path => path.includes(`/Event_deep/${event.folderName}/`));
+
+const loadedImages = await Promise.all(myImagesKeys.map(async key => {
+  try {
+    const mod = await globImages[key]();
+    return {
+      src: key.replace('/public', ''),
+      metadata: mod.default
+    };
+  } catch(e) { return null; }
+}));
+
+const validImages = loadedImages.filter(img => img !== null);
+
+// Theme-Separating Super-Dispersal Engine (separates duplicate themes/sequence poses)
+function parseImageSequence(path) {
+  const parts = path.split('/');
+  const filename = parts[parts.length - 1].split('.')[0];
+  const matches = filename.match(/\d+/g);
+  const num = matches ? parseInt(matches[matches.length - 1], 10) : 0;
+  
+  let prefix = filename;
+  if (matches) {
+    const lastMatch = matches[matches.length - 1];
+    const lastIdx = filename.lastIndexOf(lastMatch);
+    prefix = filename.substring(0, lastIdx) + filename.substring(lastIdx + lastMatch.length);
+  }
+  return { prefix, num };
+}
+
+function getSimilarityWeight(path1, path2) {
+  const img1 = parseImageSequence(path1);
+  const img2 = parseImageSequence(path2);
+  const dir1 = path1.split('/').slice(0, -1).join('/');
+  const dir2 = path2.split('/').slice(0, -1).join('/');
+  if (dir1 !== dir2) return 0;
+
+  if (img1.prefix === img2.prefix) {
+    const diff = Math.abs(img1.num - img2.num);
+    // Continuous smooth decay weight: very high for close matches, fades out slowly over a wide range
+    return Math.max(0, 1000 / (1 + diff / 30));
+  }
+  return 0;
+}
+
+function getPathHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
+function disperseImages(images) {
+  if (images.length <= 1) return images;
+  const pool = [...images];
+  const result = [];
+
+  // Seed pool deterministically
+  pool.sort((a, b) => getPathHash(a.src) - getPathHash(b.src));
+
+  while (pool.length > 0) {
+    let bestIdx = 0;
+    let minPenalty = Infinity;
+
+    for (let i = 0; i < pool.length; i++) {
+      let penalty = 0;
+      // Look back much further (up to 12 elements) to disperse sequential poses completely
+      const lookback = Math.min(result.length, 12);
+      for (let j = 0; j < lookback; j++) {
+        const placed = result[result.length - 1 - j];
+        const weight = getSimilarityWeight(pool[i].src, placed.src);
+        // Slower decay factor so matches further back still push current choice away
+        const decay = 1 / Math.sqrt(j + 1);
+        penalty += weight * decay;
+      }
+      // Add a tiny deterministic tiebreaker based on hash
+      penalty += (getPathHash(pool[i].src) % 100) / 10000;
+
+      if (penalty < minPenalty) {
+        minPenalty = penalty;
+        bestIdx = i;
+      }
+    }
+    result.push(pool.splice(bestIdx, 1)[0]);
+  }
+  return result;
+}
+
+const finalShuffledImages = disperseImages(validImages);
+
+const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async (img) => {
+  if (img.metadata) {
+    const optimized = await getImage({
+      src: img.metadata,
+      width: 1600,
+      format: 'webp',
+      quality: 85
+    });
+    return {
+      raw: img.src,
+      optimized: optimized.src
+    };
+  }
+  return {
+    raw: img.src,
+    optimized: img.src
+  };
+}));
+---
+
+<Layout title={`${event.name1} & ${event.name2} | Wedding Story`} hideGlobalPreloader={true}>
+  <div class="story-page" id="storyPage">
+    <div id="entrancePeel" class="entrance-peel"></div>
+
+    <!-- Section 1 — Full-Bleed Hero -->
+    <section class="story-hero">
+      <div class="hero-bg-wrap">
+        <OptimizedImage src={event.cover} alt="Cover" class="hero-cover-img" loading="eager" />
+        <div class="hero-bg-overlay"></div>
+      </div>
+      <div class="hero-content-overlay">
+        <p class="story-of-tag">THE EVENT</p>
+        <h1 class="couple-display-title">
+          {event.name.includes(' - ') ? (
+            <>{event.name.split(' - ')[0]} <span class="amp">&</span> {event.name.split(' - ')[1]}</>
+          ) : (
+            event.name
+          )}
+        </h1>
+        <p class="story-subtitle">Cinematic Documentation</p>
+      </div>
+      <div class="hero-scroll-hint">
+        <span class="scroll-hint-line"></span>
+        <span class="scroll-hint-text">SCROLL</span>
+      </div>
+    </section>
+
+    <!-- Section 2 — Quote -->
+    <section class="story-quote-block">
+      <div class="quote-container">
+        <div class="quote-inner">
+          <blockquote class="soul-manifesto animate-on-scroll">
+            {event.quote}
+          </blockquote>
+          <div class="quote-sep"></div>
+          <p class="quote-author-sig animate-on-scroll">{event.name}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3 — Gallery -->
+    <section class="story-gallery-sec" id="gallery-section">
+      <div class="gallery-heading">
+        <span class="heading-label">THE GALLERY</span>
+        <div class="heading-rule animate-on-scroll"></div>
+      </div>
+
+      <div class="masonry-grid">
+        {finalShuffledImages.map((img, i) => {
+          // Calculate exact aspect ratio instead of hardcoding
+          const ratio = img.metadata ? `${img.metadata.width}/${img.metadata.height}` : '3/4';
+          return (
+            <div class="gallery-item" data-index={i + 1} data-full={optimizedLightboxImages[i].optimized} style={`aspect-ratio: ${ratio}`}>
+              <div class="gallery-item-inner">
+                <OptimizedImage src={img.src} alt="Shot" loading="lazy" class="w-full h-full object-cover" />
+                <div class="grain-overlay"></div>
+                <div class="item-hover-info">
+                  <span class="item-names">{event.name}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+
+    <!-- Footer Space -->
+    <div class="next-story-nav">
+        <a href={`/events/${event.next.slug}`} class="next-story-link">
+          <span class="next-label">NEXT STORY</span>
+          <span class="next-couple">{event.next.names}</span>
+          <div class="next-nav-line"></div>
+        </a>
+    </div>
+
+    <!-- UI Elements -->
+    <div id="scrollProgress" class="fixed-progress">
+      <span id="currIdx">01</span> / <span id="totalIdx">{finalShuffledImages.length}</span>
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="premium-lightbox" hidden>
+      <div class="lb-header">
+        <div class="lb-counter"></div>
+        <button class="lb-close">✕</button>
+      </div>
+      <div class="lb-stage">
+        <button class="lb-arrow prev">←</button>
+        <div class="lb-img-wrap">
+          <img id="lbBg" class="lb-bg" src="" alt="" aria-hidden="true" />
+          <div class="watermark-container lb-watermark-wrap">
+                        <img id="lbImg" src="" alt="View" />
+            
+          </div>
+        </div>
+        <button class="lb-arrow next">→</button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  :root {
+    --paper: #f5f2ed;
+    --ink: #1a1410;
+    --gold: #b68b40;
+    --muted: #8a7e72;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .story-page { background: var(--paper); color: var(--ink); overflow-x: hidden; }
+  .entrance-peel { position: fixed; inset: 0; background: var(--paper); z-index: 9999; transform-origin: top; }
+
+  /* ── Full-Bleed Hero ── */
+  .story-hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  /* Image fills entire hero */
+  .hero-bg-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  :global(.hero-cover-img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 25%;
+    animation: heroScale 14s ease-in-out infinite alternate;
+  }
+  @keyframes heroScale {
+    from { transform: scale(1); }
+    to   { transform: scale(1.06); }
+  }
+  /* Soft vignette overlay — darkens edges, keeps centre clear */
+  .hero-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(26, 20, 16, 0.4) 0%,      /* Top dark vignette for navbar legibility */
+      rgba(245, 242, 237, 0.1) 40%,  /* Warm translucent center */
+      rgba(245, 242, 237, 0.85) 100% /* Grounding paper beige vignette */
+    );
+    z-index: 2;
+  }
+
+  /* Text overlay — centred with highly aesthetic, responsive radial mist shroud */
+  .hero-content-overlay {
+    position: relative;
+    z-index: 10;
+    max-width: 85vw;
+    text-align: center;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.5rem, 6vw, 5rem);
+    border-radius: 240px;
+    background: radial-gradient(
+      circle,
+      rgba(245, 242, 237, 0.85) 0%,
+      rgba(245, 242, 237, 0.5) 55%,
+      rgba(245, 242, 237, 0) 80%
+    );
+    margin: 0 auto;
+    backdrop-filter: blur(1px); /* Delicate micro-blur for extra editorial legibility */
+  }
+  .story-of-tag {
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    letter-spacing: 0.5em;
+    color: rgba(182, 139, 64, 0.95);
+    margin-bottom: 1.2rem;
+    opacity: 0;
+    display: block;
+    text-shadow: 0 1px 4px rgba(245, 242, 237, 0.9);
+  }
+  .couple-display-title {
+    font-family: var(--font-serif);
+    font-size: clamp(3.2rem, 8.5vw, 7rem);
+    font-weight: 300;
+    line-height: 0.95;
+    margin: 0 0 1.2rem;
+    color: var(--ink); /* DARK COLOR for readability */
+    opacity: 0;
+    transform: translateY(24px);
+    letter-spacing: 0.01em;
+    text-shadow: 0 1px 8px rgba(245, 242, 237, 0.95),
+                 0 2px 20px rgba(245, 242, 237, 0.85);
+  }
+  .amp { font-style: italic; color: var(--gold); margin: 0 0.6rem; }
+  .story-subtitle {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: rgba(26, 20, 16, 0.75); /* Dark charcoal tint instead of hard white to fit the theme */
+    text-transform: uppercase;
+    opacity: 0;
+    text-shadow: 0 1px 4px rgba(245, 242, 237, 0.9);
+  }
+
+  /* Scroll nudge — bottom-centre */
+  .hero-scroll-hint {
+    position: absolute;
+    bottom: 5vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    opacity: 0;
+  }
+  .scroll-hint-text {
+    font-family: var(--font-sans);
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    color: var(--muted); /* Golden-charcoal tone instead of white for perfect contrast */
+    text-shadow: 0 1px 4px rgba(245, 242, 237, 0.8);
+  }
+  .scroll-hint-line {
+    width: 1px;
+    height: 50px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.35; transform: scaleY(1); }
+    50%       { opacity: 1;   transform: scaleY(1.12); }
+  }
+
+  @media (max-width: 768px) {
+    .couple-display-title { font-size: clamp(2.2rem, 9vw, 3.5rem); }
+  }
+
+  /* Quote Block — Bulletproof Block Layout */
+  .story-quote-block { padding: 6rem 5vw; }
+  .quote-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    display: block; /* Pure block layout to prevent flexbox quirks */
+  }
+  .quote-inner {
+    width: 100%;
+    padding: 0 2rem;
+    box-sizing: border-box;
+    text-align: center;
+    display: block; /* Pure block layout */
+  }
+  .soul-manifesto {
+    font-family: var(--font-serif);
+    font-size: clamp(1.4rem, 4vw, 2.4rem); /* Larger and clearer */
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.6;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 800px !important; /* Allow it to breathe */
+    min-width: 280px !important; /* Physically prevents vertical word-collapsing glitches under any viewport recalculations */
+    text-align: center;
+    display: block !important;
+    white-space: normal !important; /* Enforces natural horizontal text reflow */
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .quote-sep {
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin: 2rem auto; /* Generous spacing above and below separator */
+    opacity: 0.5;
+    display: block;
+  }
+  .quote-author-sig {
+    font-family: var(--font-sans);
+    font-size: 0.6rem;
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0 auto;
+    display: block;
+    opacity: 0;
+  }
+
+  /* Gallery - Sharp Borders */
+  .story-gallery-sec { padding: 4rem 5vw 6rem; }
+  .heading-label { font-family: var(--font-sans); font-size: 0.7rem; letter-spacing: 0.4em; color: var(--gold); }
+  .heading-rule { width: 0; height: 1px; background: var(--gold); margin-top: 1rem; }
+
+  .masonry-grid { column-count: 3; column-gap: 1.5rem; margin-top: 3rem; }
+  @media (max-width: 1024px) { .masonry-grid { column-count: 2; } }
+  @media (max-width: 640px) { .masonry-grid { column-count: 1; } }
+
+  .gallery-item { break-inside: avoid; margin-bottom: 1.5rem; border-radius: 0; overflow: hidden; background: #000; }
+  .gallery-item-inner { position: relative; width: 100%; height: 100%; cursor: zoom-in; }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; transition: transform 0.8s var(--ease); }
+  .grain-overlay { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stichTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E"); }
+  .item-hover-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); color: white; display: flex; justify-content: space-between; opacity: 0; transition: 0.4s; }
+  .gallery-item:hover .item-hover-info { opacity: 1; }
+  .gallery-item:hover img { transform: scale(1.03); }
+
+  /* Navigation Footer */
+  .next-story-nav { text-align: center; padding: 8rem 2rem; border-top: 1px solid rgba(0,0,0,0.05); }
+  .next-story-link { text-decoration: none; color: var(--gold); display: inline-block; }
+  .next-label { font-family: var(--font-sans); font-size: 0.6rem; letter-spacing: 0.4em; opacity: 0.5; display: block; margin-bottom: 1rem; }
+  .next-couple { font-family: var(--font-sans); font-size: 2.2rem; font-weight: 300; display: block; text-transform: uppercase; }
+  .next-nav-line { width: 0; height: 1px; background: var(--gold); margin: 1rem auto; transition: 0.6s var(--ease); }
+  .next-story-link:hover .next-nav-line { width: 100%; }
+
+  /* Lightbox */
+  .fixed-progress { position: fixed; bottom: 30px; right: 30px; z-index: 1000; font-family: var(--font-sans); font-size: 0.7rem; color: var(--gold); letter-spacing: 0.1em; opacity: 0; transition: 0.4s; }
+  .premium-lightbox { position: fixed; inset: 0; z-index: 100000; background: rgba(245, 242, 237, 0.97); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; flex-direction: column; opacity: 0; visibility: hidden; transition: 0.4s var(--ease); }
+  .premium-lightbox.open { opacity: 1; visibility: visible; }
+  
+  .lb-header { height: 64px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .lb-counter { font-family: var(--font-sans); font-size: 0.7rem; color: var(--gold); letter-spacing: 0.3em; }
+  .lb-close { background: none; border: none; color: var(--ink); font-size: 1.5rem; cursor: pointer; line-height: 1; opacity: 0.5; transition: opacity 0.2s; padding: 0.3rem; }
+  .lb-close:hover { opacity: 1; }
+  
+  .lb-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0; gap: 0; min-height: 0; position: relative; overflow: hidden; }
+  .lb-img-wrap { flex: 1; display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; position: relative; overflow: visible; transform: scale(1); transition: 0.55s var(--ease); }
+  .premium-lightbox.open .lb-img-wrap { transform: scale(1); }
+
+  .lb-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(80px) brightness(0.4);
+    opacity: 0;
+    transition: opacity 0.8s var(--ease);
+    z-index: 1;
+    transform: scale(1.1);
+  }
+  
+  /* Lightbox watermark wrapper — must NOT clip the image */
+  .lb-img-wrap .lb-watermark-wrap {
+    overflow: visible !important;
+    max-width: calc(100vw - 160px);
+    max-height: calc(100vh - 80px);
+    width: auto !important;
+    height: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lb-img-wrap img#lbImg { 
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - 160px);
+    max-height: calc(100vh - 80px);
+    object-fit: contain;
+    transition: opacity 0.3s ease, transform 0.5s var(--ease);
+  }
+
+  /* Orientation Logic - only control background opacity, never crop image */
+  .premium-lightbox.is-landscape .lb-bg {
+    opacity: 0;
+  }
+
+  .premium-lightbox.is-portrait .lb-bg {
+    opacity: 1;
+  }
+  
+  .lb-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: white;
+    border: 1px solid rgba(0,0,0,0.12);
+    color: var(--ink);
+    font-size: 1.3rem;
+    cursor: pointer;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.25s, border-color 0.25s, transform 0.2s, color 0.25s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .lb-arrow.prev {
+    left: 40px;
+  }
+  .lb-arrow.next {
+    right: 40px;
+  }
+  .lb-arrow:hover { background: var(--gold); border-color: var(--gold); color: white; transform: translateY(-50%) scale(1.08); }
+  @media (max-width: 768px) { 
+    .lb-stage { padding: 10px; } 
+    .lb-header { padding: 0 1.2rem; }
+    
+    .lb-img-wrap .lb-watermark-wrap {
+      max-width: calc(100vw - 24px) !important;
+      max-height: calc(100vh - 160px) !important;
+    }
+    .lb-img-wrap img#lbImg {
+      max-width: calc(100vw - 24px) !important;
+      max-height: calc(100vh - 160px) !important;
+    }
+    .lb-watermark-wrap {
+      max-width: calc(100vw - 24px) !important;
+      max-height: calc(100vh - 160px) !important;
+    }
+    .lb-watermark-wrap #lbImg {
+      max-width: calc(100vw - 24px) !important;
+      max-height: calc(100vh - 160px) !important;
+    }
+
+    .lb-arrow {
+      position: absolute !important;
+      bottom: 24px !important;
+      top: auto !important;
+      transform: none !important;
+      z-index: 100 !important;
+      background: rgba(255, 255, 255, 0.9) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      border: 1px solid rgba(0, 0, 0, 0.05) !important;
+      width: 48px !important;
+      height: 48px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+    }
+    .lb-arrow.prev {
+      left: calc(50% - 64px) !important;
+    }
+    .lb-arrow.next {
+      right: calc(50% - 64px) !important;
+    }
+    .lb-arrow:hover {
+      background: var(--gold) !important;
+      color: white !important;
+      transform: scale(1.05) !important;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .story-hero {
+      margin-top: 64px;
+      height: auto !important;
+      min-height: calc(100vh - 64px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 3rem 1.5rem 2rem !important;
+      gap: 2rem;
+      position: relative;
+    }
+    .hero-bg-wrap {
+      position: relative;
+      width: 100%;
+      height: auto;
+      inset: auto;
+      order: 2;
+    }
+    :global(.hero-cover-img) {
+      position: relative;
+      width: 100%;
+      height: auto;
+      max-height: 60vh;
+      object-fit: contain;
+      animation: none;
+    }
+    .hero-bg-overlay {
+      display: none;
+    }
+    .hero-content-overlay {
+      position: relative;
+      background: none;
+      backdrop-filter: none;
+      padding: 0;
+      width: 100%;
+      max-width: 100%;
+      order: 1;
+    }
+    .couple-display-title {
+      font-size: 2.5rem;
+      text-shadow: none;
+    }
+    .story-of-tag, .story-subtitle {
+      text-shadow: none;
+    }
+    .hero-scroll-hint {
+      position: relative;
+      bottom: auto;
+      left: auto;
+      transform: none;
+      order: 3;
+      padding-top: 1rem;
+    }
+  }
+
+
+
+  .lb-watermark-wrap {
+    /* In lightbox: shrink-wrap the image, do NOT clip it */
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - 160px); /* leave room for arrows */
+    max-height: calc(100vh - 64px); /* subtract header height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    overflow: visible !important; /* override watermark-container overflow:hidden */
+  }
+
+  /* The image itself: fit inside the wrap without cropping */
+  .lb-watermark-wrap #lbImg {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: calc(100vh - 64px);
+    object-fit: contain;
+  }
+
+
+
+  
+  @media (max-width: 768px) {
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  document.addEventListener('astro:page-load', () => {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.to('#entrancePeel', { scaleY: 0, duration: 1.2, ease: "power4.inOut" });
+
+    // Full-bleed hero entrance sequence
+    gsap.to('.story-of-tag',        { opacity: 1,   duration: 0.8, delay: 0.5, ease: "power2.out" });
+    gsap.to('.couple-display-title',{ opacity: 1, y: 0, duration: 1.2, delay: 0.7, ease: "power3.out" });
+    gsap.to('.story-subtitle',      { opacity: 1,   duration: 0.8, delay: 1.1, ease: "power2.out" });
+    gsap.to('.hero-scroll-hint',    { opacity: 1,   duration: 0.8, delay: 1.5, ease: "power2.out" });
+
+    // Quote Animation - Reliable
+    ScrollTrigger.batch(".animate-on-scroll", {
+      onEnter: batch => gsap.to(batch, { opacity: 1, y: 0, duration: 1, stagger: 0.2, ease: "power2.out" }),
+      start: "top 85%"
+    });
+
+
+    // ── Gallery items
+    const items = document.querySelectorAll('.gallery-item');
+
+    // ── Scroll progress counter
+    const progressText = document.getElementById('scrollProgress');
+    const currIdxSpan  = document.getElementById('currIdx');
+    ScrollTrigger.create({
+      trigger: '.story-gallery-sec', start: 'top 50%', end: 'bottom 50%',
+      onEnter:     () => gsap.to(progressText, { opacity: 1 }),
+      onLeave:     () => gsap.to(progressText, { opacity: 0 }),
+      onEnterBack: () => gsap.to(progressText, { opacity: 1 }),
+      onLeaveBack: () => gsap.to(progressText, { opacity: 0 })
+    });
+    const visObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) currIdxSpan.textContent = String(e.target.dataset.index).padStart(2, '0'); });
+    }, { threshold: 0.6 });
+    items.forEach(item => visObs.observe(item));
+
+    // ── Lightbox
+    const lightbox  = document.getElementById('lightbox');
+    const lbImg     = document.getElementById('lbImg');
+    const lbBg      = document.getElementById('lbBg');
+    const lbCounter = lightbox.querySelector('.lb-counter');
+    const closeLb   = lightbox.querySelector('.lb-close');
+    const prevBtn   = lightbox.querySelector('.lb-arrow.prev');
+    const nextBtn   = lightbox.querySelector('.lb-arrow.next');
+    
+    const allImgs   = Array.from(items).map(it => it.getAttribute('data-full') || it.querySelector('img').src);
+    const total     = allImgs.length;
+    let cIdx = 0;
+
+    function preloadAdjacent() {
+      if (total <= 1) return;
+      const toPreload = [
+        (cIdx + 1) % total,
+        (cIdx + 2) % total,
+        (cIdx - 1 + total) % total,
+        (cIdx - 2 + total) % total
+      ];
+      toPreload.forEach(idx => {
+        const url = allImgs[idx];
+        if (url) {
+          const img = new Image();
+          img.src = url;
+        }
+      });
+    }
+
+    function updateLb() {
+      const src = allImgs[cIdx];
+      lbImg.src = src;
+      lbBg.src = src;
+      lbCounter.textContent = String(cIdx + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+
+      // Detect orientation
+      const tempImg = new Image();
+      tempImg.src = src;
+      tempImg.onload = () => {
+        lightbox.classList.remove('is-landscape', 'is-portrait');
+        if (tempImg.naturalWidth > tempImg.naturalHeight) {
+          lightbox.classList.add('is-landscape');
+        } else {
+          lightbox.classList.add('is-portrait');
+        }
+      };
+      
+      preloadAdjacent();
+    }
+    function openLb(i) {
+      cIdx = i;
+      updateLb();
+      lightbox.removeAttribute('hidden');
+      requestAnimationFrame(() => lightbox.classList.add('open'));
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLbFn() {
+      lightbox.classList.remove('open');
+      setTimeout(() => { lightbox.setAttribute('hidden', ''); document.body.style.overflow = ''; }, 420);
+    }
+    function navigate(dir) {
+      cIdx = (cIdx + dir + total) % total;
+      
+      gsap.to(lbImg, {
+        x: dir > 0 ? -60 : 60,
+        opacity: 0,
+        duration: 0.2,
+        ease: "power2.in",
+        onComplete: () => {
+          updateLb();
+          gsap.set(lbImg, { x: dir > 0 ? 60 : -60, opacity: 0 });
+          gsap.to(lbImg, {
+            x: 0,
+            opacity: 1,
+            duration: 0.25,
+            ease: "power2.out"
+          });
+        }
+      });
+
+      gsap.to(lbBg, {
+        opacity: 0,
+        duration: 0.2,
+        onComplete: () => {
+          lbBg.src = allImgs[cIdx];
+          gsap.to(lbBg, {
+            opacity: lightbox.classList.contains('is-portrait') ? 1 : 0,
+            duration: 0.25
+          });
+        }
+      });
+    }
+
+    // Wire click on each gallery item
+    items.forEach((item, i) => item.querySelector('.gallery-item-inner').addEventListener('click', () => openLb(i)));
+    closeLb.addEventListener('click', closeLbFn);
+    prevBtn.addEventListener('click', () => navigate(-1));
+    nextBtn.addEventListener('click', () => navigate(1));
+
+    // Swipe gestures
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let isSwiping = false;
+
+    lightbox.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isSwiping = true;
+    }, { passive: true });
+
+    lightbox.addEventListener('touchmove', e => {
+      if (!isSwiping) return;
+      touchEndX = e.touches[0].clientX;
+      touchEndY = e.touches[0].clientY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        gsap.set(lbImg, { x: deltaX * 0.4 });
+      }
+    }, { passive: true });
+
+    lightbox.addEventListener('touchend', e => {
+      if (!isSwiping) return;
+      isSwiping = false;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      const threshold = 60;
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
+        if (deltaX < 0) {
+          navigate(1);
+        } else {
+          navigate(-1);
+        }
+      } else {
+        gsap.to(lbImg, { x: 0, duration: 0.2, ease: "power2.out" });
+      }
+      touchStartX = 0;
+      touchStartY = 0;
+      touchEndX = 0;
+      touchEndY = 0;
+    }, { passive: true });
+
+    lightbox.addEventListener('click', e => {
+      if (Math.abs(touchEndX - touchStartX) > 10) return;
+      if (e.target === lightbox || e.target.classList.contains('lb-stage') || e.target.classList.contains('lb-img-wrap')) {
+        closeLbFn();
+      }
+    });
+
+    // Keyboard
+    document.addEventListener('keydown', e => {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'ArrowLeft')  navigate(-1);
+      if (e.key === 'ArrowRight') navigate(1);
+      if (e.key === 'Escape')     closeLbFn();
+    });
+  });
+</script>

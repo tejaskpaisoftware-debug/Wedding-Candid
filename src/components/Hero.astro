@@ -1,0 +1,358 @@
+---
+/**
+ * Hero.astro — Premium Cinematic Hero
+ * Synchronized background and text transitions.
+ * Keeps the original splash screen.
+ */
+---
+
+<!-- Fonts are globally handled via style.css -->
+
+<!-- ══════════════════════════════════════════
+     SPLASH SCREEN  (Preserved from original)
+══════════════════════════════════════════ -->
+<div id="splash" aria-hidden="true" style="display: none !important;">
+  <div class="splash-half splash-top"></div>
+  <div class="splash-half splash-bottom"></div>
+
+  <div id="splash-logo">
+    <div id="camera-wrap" style="width: 250px; height: auto; opacity: 0; transform: scale(0.95); transition: all 1.2s var(--ease-ultra);" id="splash-logo-img">
+      <img src="/03.png" alt="Logo" style="width: 100%; height: auto;" />
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PREMIUM CINEMATIC HERO
+══════════════════════════════════════════ -->
+<section id="premium-hero">
+  <!-- Background Slider -->
+  <div class="hero-bg-container">
+    <div class="hero-slide active" style="background-image: url('/homepage/WC_11751.JPG');"></div>
+    <div class="hero-slide" style="background-image: url('/homepage/DJI_20241209172706_0093_D_FLYCAPTURE%202.jpg');"></div>
+    <div class="hero-slide" style="background-image: url('/homepage/DJI_0639.jpg');"></div>
+  </div>
+
+  <!-- Soft Overlay -->
+  <div class="hero-overlay"></div>
+
+  <!-- Content -->
+  <div class="hero-container">
+    <div class="hero-content">
+      <h1 class="hero-heading">
+        <span class="static-line">CAPTURING</span>
+        <span class="dynamic-wrap">
+          <span id="hero-word">HONEST STORIES</span>
+        </span>
+      </h1>
+      <p class="hero-tagline">Legacy in motion</p>
+      <div class="hero-line"></div>
+    </div>
+  </div>
+
+  <!-- Scroll Nudge -->
+  <div class="scroll-indicator">
+    <span class="scroll-text">Explore</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     STYLES
+══════════════════════════════════════════ -->
+<style>
+  :root {
+    --cream: #f8f6f2;
+    --gold: #C9A84C;
+    --ink: #1a1814;
+    --serif: var(--font-serif);
+    --sans: var(--font-sans);
+    --ease-ultra: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+
+
+  /* ── PREMIUM HERO ─────────────────────── */
+  #premium-hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: #000;
+    overflow: hidden;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-bg-container {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .hero-slide {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.6s var(--ease-ultra);
+    transform: scale(1.05);
+    will-change: transform, opacity;
+  }
+
+  .hero-slide.active {
+    opacity: 1;
+    z-index: 2;
+    animation: kenBurns 10s linear infinite alternate;
+  }
+
+  @keyframes kenBurns {
+    0% { transform: scale(1.0); }
+    100% { transform: scale(1.05); }
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35); /* 35% dark overlay for clear text contrast on all backgrounds */
+    z-index: 3;
+  }
+
+  .hero-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 1.2s var(--ease-ultra);
+  }
+
+  #premium-hero.in .hero-content {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .hero-heading {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 8.5vw, 8.5rem);
+    font-weight: 300;
+    line-height: 0.95;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15em; /* Separates the lines safely even with fallback fonts */
+    transition: color 0.6s ease;
+  }
+
+
+  .static-line {
+    display: block;
+    opacity: 1;
+  }
+
+  .dynamic-wrap {
+    display: block;
+    height: 1.15em;
+    overflow: hidden;
+    position: relative;
+    font-weight: 300;
+  }
+
+  .hero-tagline {
+    font-family: var(--serif);
+    font-size: clamp(0.9rem, 1.5vw, 1.25rem);
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.3em;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 1s ease 4.2s;
+  }
+
+  #premium-hero.in .hero-tagline {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  #hero-word {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .hero-line {
+    display: none;
+  }
+
+
+  /* Scroll Indicator */
+  .scroll-indicator {
+    position: absolute;
+    bottom: 5vh;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 1s ease 1s;
+  }
+
+  #premium-hero.in .scroll-indicator {
+    opacity: 1;
+  }
+
+  .scroll-text {
+    font-family: var(--sans);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scroll-line::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--gold);
+    animation: scrollLineMove 2.5s infinite var(--ease-ultra);
+  }
+
+  @keyframes scrollLineMove {
+    0% { top: -100%; }
+    100% { top: 100%; }
+  }
+
+  @media (max-width: 768px) {
+    #premium-hero {
+      height: auto;
+      aspect-ratio: 16/10; /* Set a natural aspect ratio to display the landscape photo fully */
+      width: 100%;
+    }
+    .hero-slide {
+      background-size: cover;
+      background-position: center center;
+    }
+    .hero-heading {
+      font-size: clamp(1.4rem, 6vw, 2.3rem);
+      line-height: 1.5;
+      margin-bottom: 0.8rem;
+      gap: 0.8rem; /* Prevents text overlaps between static and dynamic lines */
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+    .hero-overlay {
+      background: rgba(0, 0, 0, 0.38); /* Slightly darker overlay on mobile for better text visibility */
+    }
+    .dynamic-wrap {
+      height: 1.5em; /* Ensure the dynamic wrap height matches the line height to prevent overlap */
+    }
+    .hero-tagline {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); /* Makes tagline legible on bright skies */
+    }
+    .scroll-indicator {
+      display: none; /* Hide scroll indicator on mobile as the hero is shorter */
+    }
+  }
+</style>
+
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════ -->
+<script>
+  import { gsap } from 'gsap';
+
+  function initPremiumHero() {
+    const hero = document.getElementById('premium-hero');
+    const wordEl = document.getElementById('hero-word');
+    const slides = document.querySelectorAll('.hero-slide');
+    
+    if (!hero) return;
+
+    // ── Preload Images ──────────────────────────
+    const images = [
+      '/homepage/WC_11751.JPG',
+      '/homepage/DJI_20241209172706_0093_D_FLYCAPTURE%202.jpg',
+      '/homepage/DJI_0639.jpg'
+    ];
+    images.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+
+    // Immediately reveal the Hero
+    hero.classList.add('in');
+
+    // ── Rotation Logic ──────────────────────────
+    const phrases = ['HONEST STORIES', 'CINEMATIC MOMENTS', 'PURE EMOTIONS'];
+    let currentIdx = 0;
+
+    const changeSlide = () => {
+      const nextIdx = (currentIdx + 1) % phrases.length;
+
+      // 1. Transition Word out
+      gsap.to(wordEl, {
+        y: -30,
+        opacity: 0,
+        duration: 0.4,
+        ease: 'power3.in',
+        onComplete: () => {
+          // Word comes in
+          wordEl.textContent = phrases[nextIdx];
+          gsap.fromTo(wordEl, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' });
+
+          // 2. Transition Background at the exact same time
+          slides[currentIdx].classList.remove('active');
+          slides[nextIdx].classList.add('active');
+
+          currentIdx = nextIdx;
+        }
+      });
+    };
+
+    // Start interval
+    let interval;
+    const intervalDelay = 3000;
+    
+    setTimeout(() => {
+      interval = setInterval(changeSlide, 3000); 
+    }, intervalDelay);
+
+    // Cleanup
+    document.addEventListener('astro:before-preparation', () => {
+      clearInterval(interval);
+    }, { once: true });
+  }
+
+  document.addEventListener('astro:page-load', initPremiumHero);
+</script>

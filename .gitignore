@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.venv/
+*.log
+*.mp4
+*.zip
+
+# Large asset dumps
+Wedding_Candid_web site/
+wedding candid/
+Deep bhai/
+.tempmediaStorage/
+.vercel

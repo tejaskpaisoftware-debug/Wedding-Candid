@@ -1,0 +1,111 @@
+---
+/**
+ * IconsSection.astro
+ * A minimalist row of brand icons/logos to build trust and credibility.
+ */
+const ICONS = [
+  { src: '/icons/logo.png', alt: 'Brand Logo 1', label: 'WeddingClicks' },
+  { src: '/icons/ODF.png', alt: 'Brand Logo 2', label: 'WedMeGood' },
+  { src: '/icons/1709638878773.jpeg', alt: 'Brand Logo 3', label: 'Zowed' },
+  { src: '/icons/photo_2026-04-27_13-44-28.jpg', alt: 'Brand Logo 4', label: 'WeddingSutra' }
+];
+---
+
+<section class="icons-section stagger-reveal">
+  <p class="featuring-label">Featuring in</p>
+  <div class="icons-container">
+    {ICONS.map((icon) => (
+      <div class="icon-item">
+        <div class="icon-img-wrapper">
+          <img src={icon.src} alt={icon.alt} loading="lazy" />
+        </div>
+        {icon.label && <span class="icon-label">{icon.label}</span>}
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .icons-section {
+    padding: 4rem 5vw;
+    background: #f8f6f2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .featuring-label {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--accent, #b68b40);
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .icons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4rem;
+    max-width: 1200px;
+    width: 100%;
+  }
+
+  .icon-item {
+    flex: 0 1 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .icon-img-wrapper {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-img-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .icon-label {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--text-charcoal);
+    letter-spacing: 0.05em;
+    opacity: 0.9;
+    text-align: center;
+    line-height: 1;
+  }
+
+  @media (max-width: 768px) {
+    .icons-section {
+      padding: 3rem 5vw;
+    }
+    .icons-container {
+      gap: 2.5rem;
+    }
+    .icon-item {
+      flex: 0 1 100px;
+      gap: 0.5rem;
+    }
+    .icon-img-wrapper {
+      height: 45px;
+    }
+    .icon-label {
+      font-size: 0.9rem;
+    }
+  }
+</style>

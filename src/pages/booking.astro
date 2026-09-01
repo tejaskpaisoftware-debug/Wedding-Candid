@@ -1,0 +1,644 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+/**
+ * booking.astro — Premium Single-Screen Enquiry Portal
+ * Styled direct on page without enclosing cards for maximum spacing, proper layout, and elegance.
+ */
+---
+
+<Layout hideGlobalPreloader={true}>
+  <div class="booking-experience">
+    <div class="form-wrapper">
+      
+      <!-- Elegant Header Section -->
+      <div class="form-header">
+        <span class="form-tagline">ENQUIRY BRIEF</span>
+        <h1 class="form-title">Begin Your Story</h1>
+        <p class="form-subtitle">Please complete the details below to receive your custom cinematography & photography proposal.</p>
+      </div>
+
+      <form class="enquiry-form" id="enquiryForm" action="https://formsubmit.co/ajax/weddingcandid267@gmail.com" method="POST">
+        <input type="hidden" name="_subject" value="New Wedding Candid Enquiry from Website" />
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="_template" value="box" />
+        <input type="text" name="_honey" style="display:none" />
+        <div class="form-grid">
+          
+          <!-- LEFT COLUMN: The Details -->
+          <div class="form-col-left">
+            <h2 class="section-title">01 / The Characters & Scene</h2>
+            <div class="input-grid">
+              <div class="input-group">
+                <label for="bride-name">Bride Name</label>
+                <input type="text" id="bride-name" name="Bride Name" placeholder="Enter name" required maxlength="50" autocomplete="off" />
+                <span class="field-error" id="bride-name-error">Only alphabets, spaces and hyphens allowed</span>
+              </div>
+              <div class="input-group">
+                <label for="groom-name">Groom Name</label>
+                <input type="text" id="groom-name" name="Groom Name" placeholder="Enter name" required maxlength="50" autocomplete="off" />
+                <span class="field-error" id="groom-name-error">Only alphabets, spaces and hyphens allowed</span>
+              </div>
+              <div class="input-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="Phone Number" placeholder="+91 ..." required maxlength="10" inputmode="numeric" />
+                <span class="field-error" id="phone-error">Enter a valid 10-digit phone number</span>
+              </div>
+              <div class="input-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="Email Address" placeholder="example@gmail.com" required />
+              </div>
+              <div class="input-group">
+                <label for="date">Wedding Date</label>
+                <input type="date" id="date" name="Wedding / Event Date" required />
+              </div>
+              <div class="input-group">
+                <label for="city">Wedding City</label>
+                <input type="text" id="city" name="Wedding / Event City" placeholder="Location" required />
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: Services & Story -->
+          <div class="form-col-right">
+            
+            <div class="service-section">
+              <h2 class="section-title">02 / Selected Genres</h2>
+              <div class="service-grid">
+                {['Wedding', 'Pre Wedding', 'Engagement', 'Family Function', 'Event', 'Product Shoot'].map(service => (
+                  <label class="service-item">
+                    <input type="checkbox" name="Selected Genres / Services" value={service} />
+                    <span class="service-box">
+                      <span class="box-inner"></span>
+                      <span class="service-name">{service}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div class="narrative-section">
+              <h2 class="section-title">03 / The Narrative Brief</h2>
+              <div class="narrative-grid">
+                <div class="input-group">
+                  <label for="details">Event Details</label>
+                  <span class="input-hint">Venues, estimated guest count, event flow...</span>
+                  <input type="text" id="details" name="Event Details & Venue" placeholder="Describe the scene..." />
+                </div>
+                <div class="input-group">
+                  <label for="story">Your Story</label>
+                  <span class="input-hint">How did you two meet? We love a good story.</span>
+                  <input type="text" id="story" name="Their Love Story / Message" placeholder="Share your journey..." />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- FORM FOOTER -->
+        <div class="form-footer">
+          <button type="submit" class="submit-btn">
+            <span class="btn-bg"></span>
+            <span class="btn-text">Submit Enquiry</span>
+          </button>
+          <p class="spam-note-minimal">
+            <strong>Note:</strong> If you don't receive a response within 2-3 business days, please check your spam folder. In some cases, our reply has ended up there.
+          </p>
+        </div>
+      </form>
+
+    </div>
+
+    <!-- Success Message Overlay -->
+    <div id="success-overlay" class="success-overlay" hidden>
+      <div class="success-card">
+        <h2 class="success-title">Message <em>Sent</em></h2>
+        <p class="success-p">Thank you for sharing your story. Deep and the team will be in touch shortly.</p>
+        <button type="button" onclick="window.location.href='/'" class="back-link">Return Home</button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  :root {
+    --gold: #b68b40;
+    --gold-light: #d1b894;
+    --ink: #1a1814;
+    --cream: #fdfaf7;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .booking-experience {
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 130px 6vw 80px; /* Safe padding for navbar and footer */
+    box-sizing: border-box;
+  }
+
+  .form-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    margin: auto;
+    box-sizing: border-box;
+  }
+
+  /* Form Header */
+  .form-header {
+    text-align: center;
+    margin-bottom: 2.25rem; /* Optimized header margin */
+  }
+
+  .form-tagline {
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .form-title {
+    font-family: var(--font-serif);
+    font-size: 2.2rem; /* Balanced title size */
+    font-weight: 300;
+    margin: 0.2rem 0;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .form-subtitle {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    color: rgba(26, 24, 20, 0.5);
+    margin: 0;
+  }
+
+  /* Form Grid Layout */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 5vw;
+    margin-bottom: 1.75rem; /* Compact grid margin */
+  }
+
+  .section-title {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border-bottom: 1px solid rgba(182, 139, 64, 0.15);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+  }
+
+  /* Left Column Inputs spacing */
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.75rem 2.5rem; /* Perfect balanced vertical and horizontal gap */
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  label {
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    opacity: 0.85;
+    font-weight: 500;
+  }
+
+  .input-hint {
+    font-family: var(--font-sans);
+    font-size: 0.55rem;
+    opacity: 0.45;
+    margin-top: -0.2rem;
+  }
+
+  input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(26, 24, 20, 0.12);
+    padding: 0.4rem 0;
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    color: var(--ink);
+    transition: border-color 0.3s ease;
+    border-radius: 0;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+
+  /* Right Column styling with dynamic vertical divider */
+  .form-col-right {
+    border-left: 1px solid rgba(182, 139, 64, 0.12);
+    padding-left: 4.5rem;
+  }
+
+  .service-section {
+    margin-bottom: 2.25rem;
+  }
+
+  .service-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem 1rem;
+  }
+
+  .service-item {
+    cursor: pointer;
+  }
+
+  .service-item input {
+    display: none;
+  }
+
+  .service-box {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: rgba(26, 24, 20, 0.5);
+    transition: color 0.3s ease;
+    text-transform: uppercase;
+  }
+
+  .box-inner {
+    width: 11px;
+    height: 11px;
+    border: 1px solid rgba(26, 24, 20, 0.2);
+    border-radius: 2px;
+    position: relative;
+    transition: background 0.3s ease, border-color 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .service-item input:checked + .service-box .box-inner {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .service-item input:checked + .service-box {
+    color: var(--ink);
+  }
+
+  /* Narrative Inputs spacing */
+  .narrative-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Form Footer */
+  .form-footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    border-top: 1px solid rgba(26, 24, 20, 0.08);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .submit-btn {
+    position: relative;
+    background: var(--ink);
+    color: #fff;
+    padding: 1rem 4rem; /* Slightly wider button since it's centered */
+    border: none;
+    border-radius: 100px;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.3s var(--ease), background 0.3s ease;
+  }
+
+  .submit-btn:hover {
+    background: var(--gold);
+    transform: translateY(-2px);
+  }
+
+  .spam-note-minimal {
+    font-family: var(--font-sans);
+    font-size: 0.8rem; /* Increased font size */
+    color: rgba(26, 24, 20, 0.5);
+    margin: 0;
+    max-width: 65ch;
+    text-align: center; /* Centered text */
+    line-height: 1.6;
+  }
+
+  .spam-note-minimal strong {
+    color: var(--gold);
+  }
+
+  /* Success State */
+  .success-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .success-overlay[hidden] {
+    display: none;
+  }
+
+  .success-card {
+    text-align: center;
+    max-width: 500px;
+  }
+
+  .success-title {
+    font-family: var(--font-serif);
+    font-size: 4rem;
+    font-weight: 300;
+    margin-bottom: 2rem;
+  }
+
+  .success-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .success-p {
+    font-family: var(--font-sans);
+    margin-bottom: 3rem;
+    opacity: 0.6;
+  }
+
+  .back-link {
+    display: inline-block;
+    padding: 1rem 3rem;
+    border: 1px solid var(--ink);
+    background: transparent;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    border-radius: 100px;
+    cursor: pointer;
+  }
+
+  /* Responsive styling */
+  @media (max-width: 991px) {
+    .booking-experience {
+      height: auto;
+      min-height: 100vh;
+      padding: 110px 4vw 4rem;
+    }
+    .form-col-right {
+      border-left: none;
+      padding-left: 0;
+    }
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 3.5rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .input-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    .service-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .form-footer {
+      flex-direction: column;
+      gap: 1.5rem;
+      text-align: center;
+    }
+    .spam-note-minimal {
+      text-align: center;
+    }
+  }
+
+  /* ── FIELD VALIDATION ERRORS ── */
+  .field-error {
+    display: none;
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    color: #c0392b;
+    letter-spacing: 0.04em;
+    margin-top: 0.3rem;
+  }
+  .field-error.visible {
+    display: block;
+  }
+  .input-group input.invalid {
+    border-bottom-color: #c0392b;
+  }
+  .input-group input.valid {
+    border-bottom-color: var(--gold);
+  }
+</style>
+
+<script is:inline>
+  document.addEventListener('astro:page-load', () => {
+    const form = document.getElementById('enquiryForm');
+    const success = document.getElementById('success-overlay');
+    const btnText = document.querySelector('.btn-text');
+
+    // ── VALIDATION HELPERS ──────────────────────────────────
+    const namePattern = /^[a-zA-Z\s\-]*$/;   // letters, spaces, hyphens only
+    const phonePattern = /^[0-9]*$/;          // digits only
+
+    function showError(input, errorId) {
+      input.classList.remove('valid');
+      input.classList.add('invalid');
+      const err = document.getElementById(errorId);
+      if (err) err.classList.add('visible');
+    }
+
+    function clearError(input, errorId) {
+      input.classList.remove('invalid');
+      if (input.value.trim()) input.classList.add('valid');
+      const err = document.getElementById(errorId);
+      if (err) err.classList.remove('visible');
+    }
+
+    // ── NAME FIELDS: allow only alphabets, spaces, hyphens ──
+    ['bride-name', 'groom-name'].forEach(id => {
+      const input = document.getElementById(id);
+      const errId = id + '-error';
+      if (!input) return;
+
+      // Block non-alphabetic keypresses live
+      input.addEventListener('keypress', (e) => {
+        if (!namePattern.test(e.key)) {
+          e.preventDefault();
+          showError(input, errId);
+          setTimeout(() => clearError(input, errId), 1500);
+        }
+      });
+
+      // Strip invalid chars on paste
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text');
+        const clean = pasted.replace(/[^a-zA-Z\s\-]/g, '');
+        document.execCommand('insertText', false, clean);
+      });
+
+      // Validate on blur
+      input.addEventListener('blur', () => {
+        if (!namePattern.test(input.value) || input.value.trim() === '') {
+          showError(input, errId);
+        } else {
+          clearError(input, errId);
+        }
+      });
+
+      input.addEventListener('input', () => {
+        if (namePattern.test(input.value)) clearError(input, errId);
+      });
+    });
+
+    // ── PHONE FIELD: allow only digits, max 10 ──────────────
+    const phoneInput = document.getElementById('phone');
+    const phoneErrId = 'phone-error';
+    if (phoneInput) {
+      phoneInput.addEventListener('keypress', (e) => {
+        // Allow: digits only
+        if (!phonePattern.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+          e.preventDefault();
+          showError(phoneInput, phoneErrId);
+          setTimeout(() => clearError(phoneInput, phoneErrId), 1500);
+        }
+        // Enforce 10-digit max
+        if (phoneInput.value.length >= 10 && !['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) {
+          e.preventDefault();
+        }
+      });
+
+      // Strip non-digits on paste and truncate to 10
+      phoneInput.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text');
+        const clean = pasted.replace(/[^0-9]/g, '').slice(0, 10);
+        document.execCommand('insertText', false, clean);
+      });
+
+      // Validate on blur: must be exactly 10 digits
+      phoneInput.addEventListener('blur', () => {
+        if (!/^[0-9]{10}$/.test(phoneInput.value)) {
+          showError(phoneInput, phoneErrId);
+        } else {
+          clearError(phoneInput, phoneErrId);
+        }
+      });
+
+      phoneInput.addEventListener('input', () => {
+        // Remove any accidentally entered non-digits
+        phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '').slice(0, 10);
+        if (/^[0-9]{10}$/.test(phoneInput.value)) clearError(phoneInput, phoneErrId);
+      });
+    }
+
+    // ── FORM SUBMIT ─────────────────────────────────────────
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Re-validate all fields before sending
+        let hasErrors = false;
+        ['bride-name', 'groom-name'].forEach(id => {
+          const input = document.getElementById(id);
+          if (input && (!namePattern.test(input.value) || input.value.trim() === '')) {
+            showError(input, id + '-error');
+            hasErrors = true;
+          }
+        });
+        if (phoneInput && !/^[0-9]{10}$/.test(phoneInput.value)) {
+          showError(phoneInput, phoneErrId);
+          hasErrors = true;
+        }
+        if (hasErrors) return;
+
+        // Anti-spam honeypot field check
+        const honey = form.querySelector('input[name="_honey"]');
+        if (honey && honey.value) {
+          success.removeAttribute('hidden');
+          form.reset();
+          return;
+        }
+
+        const originalText = btnText.textContent;
+        btnText.textContent = "Sending...";
+        
+        const formData = new FormData(form);
+        const object = {};
+        
+        for (const [key, value] of formData.entries()) {
+          if (key === '_honey') continue;
+          if (object[key] !== undefined) {
+            if (!Array.isArray(object[key])) object[key] = [object[key]];
+            object[key].push(value);
+          } else {
+            object[key] = value;
+          }
+        }
+        for (const key in object) {
+          if (Array.isArray(object[key])) object[key] = object[key].join(', ');
+        }
+
+        const json = JSON.stringify(object);
+
+        try {
+          const res = await fetch("https://formsubmit.co/ajax/weddingcandid267@gmail.com", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: json
+          });
+          const result = await res.json();
+          if (result.success === "true" || result.success === true) {
+            success.removeAttribute('hidden');
+            form.reset();
+            // Clear validation states after reset
+            form.querySelectorAll('.valid, .invalid').forEach(el => {
+              el.classList.remove('valid', 'invalid');
+            });
+          } else {
+            console.error(result);
+            alert("Something went wrong. Please try again.");
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Something went wrong. Please check your connection and try again.");
+        } finally {
+          btnText.textContent = originalText;
+        }
+      });
+    }
+  });
+</script>

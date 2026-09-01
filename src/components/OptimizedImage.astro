@@ -1,0 +1,66 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+
+interface Props {
+  src: string;
+  alt: string;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  width?: number;
+  height?: number;
+}
+
+const { src, alt, class: className, loading = 'lazy' } = Astro.props;
+
+// Use Vite's glob to map all public images.
+// This creates a lazy map, so it doesn't hurt performance unless the image is actually used.
+const images = import.meta.glob<{ default: ImageMetadata }>('/public/**/*.{jpeg,jpg,png,gif,webp,JPEG,JPG,PNG,GIF,WEBP}');
+
+// The src prop is expected to be an absolute path starting with '/', e.g., '/images/gallery/opt/image.webp'
+// We map it to the glob key which is '/public/images/gallery/opt/image.webp'
+const globKey = `/public${src}`;
+
+let imageMetadata: ImageMetadata | undefined;
+if (images[globKey]) {
+  try {
+    const mod = await images[globKey]();
+    imageMetadata = mod.default;
+  } catch (e) {
+    console.error(`Failed to load image: ${globKey}`, e);
+  }
+}
+---
+
+<div class="watermark-container">
+  {imageMetadata ? (
+    <Picture 
+      src={imageMetadata} 
+      alt={alt} 
+      class={className} 
+      formats={['webp']} 
+      fallbackFormat="jpg" 
+      loading={loading} 
+      widths={[400, 800, 1200]} 
+      sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw"
+    />
+  ) : (
+    <img src={src} alt={alt} class={className} loading={loading} />
+  )}
+</div>
+
+<style>
+  .watermark-container {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .watermark-container picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import OptimizedImage from '../../components/OptimizedImage.astro';
+
+/**
+ * photography/wedding.astro — Dedicated Wedding Archive
+ * Vertical formal masonry with Iris Reveals
+ */
+
+const WEDDING_COUPLES = [
+  { id: 'aashvi-tej', names: 'Aashvi & Tej', shortQuote: 'Moments In Light', cover: '/images/gallery/aashvi-tej/WC__8251.jpg' },
+  { id: 'mit-kinjal', names: 'Mit & Kinjal', shortQuote: 'Eternal Bonds', cover: '/images/gallery/mit-kinjal/WC__8428.jpg' },
+  { id: 'vishwa-vishu', names: 'Vishwa & Vishu', shortQuote: 'Infinite Grace Found', cover: '/images/gallery/vishwa-vishu/WC__0652.jpg' },
+  { id: 'parth-shivani', names: 'Parth & Shivani', shortQuote: 'Two Souls, One Path', cover: '/images/gallery/parth-shivani/MBJ_8834.jpg' },
+  { id: 'riya-hardik', names: 'Riya & Hardik', shortQuote: 'Soulful Connection', cover: '/images/gallery/riya-hardik/WC__5748.jpg' },
+  { id: 'hemant-devanshi', names: 'Hemant & Devanshi', shortQuote: 'Pure Love Story', cover: '/images/gallery/hemant-devanshi/wedding_cover.jpg' },
+  { id: 'mayur-shivani', names: 'Mayur & Shivani', shortQuote: 'Whispers Of Us', cover: '/images/gallery/mayur-shivani/WC__7466.jpg' }
+];
+---
+
+<Layout hideGlobalPreloader={true}>
+  <div class="exhibition-page">
+    <nav class="sub-nav">
+      <h1 class="page-title">WEDDING <em>ALBUMS</em></h1>
+    </nav>
+
+    <main class="exhibition-content">
+      <div class="wedding-grid">
+        {WEDDING_COUPLES.map((couple, i) => (
+          <a href={`/wedding/${couple.id}`} class="couple-card">
+            <div class="couple-img-wrap">
+              <OptimizedImage src={couple.cover} alt={couple.names} loading="eager" class="w-full h-full object-cover" />
+              <div class="couple-overlay"><span>Explore Story →</span></div>
+            </div>
+            <div class="couple-info">
+              <p class="couple-tag">The Story of</p>
+              <h3 class="couple-name">
+                {couple.names.split(' & ')[0]} <em>&</em> {couple.names.split(' & ')[1]}
+              </h3>
+              <p class="couple-mini-quote">{couple.shortQuote}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  :root {
+    --paper: #fdfbf9;
+    --ink: #1a1410;
+    --gold: #b68b40;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .exhibition-page { background: var(--paper); color: var(--ink); min-height: 100vh; }
+  
+  .sub-nav { display: flex; justify-content: center; align-items: center; padding: 6rem 5vw 2rem; border-bottom: 1px solid rgba(0,0,0,0.05); position: sticky; top: 0; background: var(--paper); z-index: 100; }
+  .back-link { font-family: var(--font-sans); font-size: 0.7rem; color: var(--gold); text-decoration: none; letter-spacing: 0.3em; }
+  .page-title { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 300; }
+  .page-title em { font-style: italic; color: var(--gold); }
+
+  .exhibition-content { padding: 6rem 5vw 10rem; }
+  .wedding-grid { display: flex; flex-direction: column; gap: 8rem; max-width: 1300px; margin: 0 auto; }
+  
+  .couple-card { display: flex; align-items: center; gap: 6vw; text-decoration: none; color: inherit; opacity: 0; transform: translateY(40px); }
+  .couple-card:nth-child(even) { flex-direction: row-reverse; }
+  .couple-img-wrap { flex: 1.4; position: relative; border-radius: 0; overflow: hidden; aspect-ratio: 16/10; }
+  .couple-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
+  .couple-card:hover img { transform: scale(1.05); }
+  .couple-info { flex: 1; }
+  .couple-card:nth-child(even) .couple-info { text-align: right; align-items: flex-end; }
+  .couple-name { font-family: var(--font-serif); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 400; margin: 1rem 0; line-height: 1; transition: 0.6s; }
+  .couple-card:hover .couple-name { letter-spacing: 0.05em; color: var(--gold); }
+  .couple-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.4s; }
+  .couple-card:hover .couple-overlay { opacity: 1; }
+  .couple-overlay span { color: white; font-family: var(--font-sans); font-size: 0.7rem; letter-spacing: 0.2em; border-bottom: 1px solid white; }
+  @media (max-width: 768px) {
+    .sub-nav {
+      position: static !important;
+      padding: 6.5rem 4vw 1.5rem !important;
+    }
+    .exhibition-content { padding: 4rem 4vw 6rem; }
+    .wedding-grid { gap: 4rem; }
+    .couple-card { flex-direction: column !important; gap: 1.5rem; }
+    .couple-card:nth-child(even) { flex-direction: column !important; }
+    .couple-info { text-align: left !important; }
+    .couple-card:nth-child(even) .couple-info { text-align: left !important; }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  document.addEventListener('astro:page-load', () => {
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.to('.couple-card', { opacity: 1, y: 0, stagger: 0.15, duration: 1.2, ease: "power3.out", scrollTrigger: { trigger: '.wedding-grid', start: "top 85%" } });
+  });
+</script>

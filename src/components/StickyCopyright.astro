@@ -1,0 +1,134 @@
+---
+/**
+ * StickyCopyright.astro
+ * A premium glassmorphism sticky copyright badge that reveals when 
+ * scrolling through gallery sections.
+ */
+interface Props {
+  brandName?: string;
+  targetId?: string;
+}
+
+const { 
+  brandName = "Wedding Candid", 
+  targetId = "gallery-section" 
+} = Astro.props;
+---
+
+<div id="sticky-copyright" class="sticky-copyright" aria-hidden="true">
+  <span class="copyright-text">
+    © 2026 {brandName} — All images & videos are copyrighted
+  </span>
+  <button class="security-info-trigger open-security-modal" title="Security & Content Protection">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    </svg>
+  </button>
+</div>
+
+<style>
+  .sticky-copyright {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 900;
+    
+    /* Minimalist Style (No Glass) */
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    padding: 0.5rem 0;
+    box-shadow: none;
+    
+    /* Typography */
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #000;
+    white-space: nowrap;
+    
+    /* Animation State */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(15px);
+    transition: 
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0.6s;
+    
+    pointer-events: auto; /* Allow interactions */
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .security-info-trigger {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.4;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .security-info-trigger:hover {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  .sticky-copyright.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  /* Handle light background text contrast if parent is light */
+  :global(.light-theme) .sticky-copyright {
+    background: transparent;
+    color: #000;
+  }
+
+  @media (max-width: 640px) {
+    .sticky-copyright {
+      bottom: 15px;
+      right: 15px;
+      padding: 0.6rem 1rem;
+      font-size: 9px;
+    }
+  }
+</style>
+
+<script is:inline define:vars={{ targetId }}>
+  function initStickyCopyright() {
+    const badge = document.getElementById('sticky-copyright');
+    const target = document.getElementById(targetId);
+    
+    if (!badge || !target) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          badge.classList.add('visible');
+        } else {
+          badge.classList.remove('visible');
+        }
+      });
+    }, {
+      threshold: 0.05, 
+      rootMargin: "0px 0px -50px 0px"
+    });
+
+    observer.observe(target);
+  }
+
+  document.addEventListener('astro:page-load', initStickyCopyright);
+</script>

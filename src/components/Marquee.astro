@@ -1,0 +1,77 @@
+---
+/**
+ * Parallax Marquee Divider
+ */
+---
+<section class="marquee-section py-4 bg-neutral-50 overflow-hidden relative border-y border-[rgba(26,26,26,0.06)]">
+  <div class="marquee-container flex whitespace-nowrap overflow-hidden">
+    <div class="marquee-content flex gap-12 items-center text-[4rem] md:text-[7rem] italic font-light tracking-wide px-6 text-[#1a1814]" style="font-family: var(--font-serif);">
+      <span>WEDDING CANDID</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+      <span>LUXURY EDITORIAL</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+      <span>TIMELESS MOMENTS</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+      <span>LOVE STORIES</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+      <span>FINE ART</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+    </div>
+    <!-- Duplicate for infinite looping -->
+    <div class="marquee-content flex gap-12 items-center text-[4rem] md:text-[7rem] italic font-light tracking-wide px-6 text-[#1a1814]" aria-hidden="true" style="font-family: var(--font-serif);">
+      <span>WEDDING CANDID</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+      <span>LUXURY EDITORIAL</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+      <span>TIMELESS MOMENTS</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+      <span>LOVE STORIES</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+      <span>FINE ART</span> <span class="text-2xl not-italic text-[#C9A84C] opacity-50">✦</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .marquee-container {
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  }
+  .marquee-content {
+    animation: scroll-left 35s linear infinite;
+    will-change: transform;
+  }
+  @keyframes scroll-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
+</style>
+
+<script is:inline>
+  function initMarqueeParallax() {
+    let lastScroll = window.scrollY;
+    let velocity = 0;
+    const contents = document.querySelectorAll('.marquee-content');
+    
+    function render() {
+      // Decay velocity smoothly
+      velocity *= 0.9;
+      
+      if (Math.abs(velocity) > 0.1 && contents.length > 0) {
+        contents.forEach(content => {
+          // Temporarily shift the transform based on scroll velocity
+          const currentTx = parseFloat(getComputedStyle(content).transform.split(',')[4]) || 0;
+          // Apply velocity push by slightly modifying the animation playback rate or translating
+          content.style.transform = `translateX(${velocity}px)`;
+        });
+      } else {
+        contents.forEach(content => {
+          content.style.transform = '';
+        });
+      }
+      requestAnimationFrame(render);
+    }
+    render();
+
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.scrollY;
+      const diff = currentScroll - lastScroll;
+      velocity += diff * 0.15; // Push velocity based on scroll delta
+      
+      lastScroll = currentScroll;
+    }, { passive: true });
+  }
+
+  document.addEventListener('astro:page-load', initMarqueeParallax);
+</script>

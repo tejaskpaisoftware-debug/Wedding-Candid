@@ -1,0 +1,149 @@
+---
+/**
+ * Custom Interactive Glass Lens Cursor
+ */
+---
+<!-- Cursor Structure -->
+<div id="custom-cursor" class="pointer-events-none fixed top-0 left-0 z-[9999999] opacity-0 transition-opacity duration-300 hidden md:block">
+  <div id="glass-lens" class="absolute left-0 top-0 w-8 h-8 rounded-full border border-[#C9A84C] flex items-center justify-center font-sans text-[8px] font-medium tracking-widest text-[#C9A84C]" style="will-change: transform; transform: translate3d(var(--x, 0px), var(--y, 0px), 0) translate(-50%, -50%); transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, border-width 0.4s ease; box-shadow: 0 4px 16px rgba(0,0,0,0.15); background: rgba(255,255,255,0.03);"></div>
+  <div id="cursor-dot" class="absolute left-0 top-0 w-2 h-2 bg-[#C9A84C] rounded-full transition-opacity duration-300" style="will-change: transform; transform: translate3d(var(--dx, 0px), var(--dy, 0px), 0) translate(-50%, -50%); box-shadow: 0 0 0 1px rgba(0,0,0,0.2);"></div>
+</div>
+
+<style>
+  #custom-cursor,
+  #glass-lens,
+  #cursor-dot {
+    z-index: 9999999 !important;
+    pointer-events: none !important;
+  }
+  
+  /* Only hide default cursor on desktop */
+  @media (hover: hover) and (pointer: fine) {
+    html { cursor: none !important; }
+    a, button, input, .canvas-item, .g-cell, .portfolio-item, .gallery-item, .lightbox-trigger, img { cursor: none !important; }
+  }
+  
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+</style>
+
+<script is:inline>
+  function initCursor() {
+    // Only run on desktop
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    const cursor = document.getElementById('custom-cursor');
+    const dot = document.getElementById('cursor-dot');
+    const lens = document.getElementById('glass-lens');
+    if (!cursor) return;
+    
+    cursor.style.opacity = '1';
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+
+    let lensX = mouseX;
+    let lensY = mouseY;
+    let dotX = mouseX;
+    let dotY = mouseY;
+
+    const onMouseMove = (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    };
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+
+    const render = () => {
+      // Faster, snappier multipliers (0.12 -> 0.22 for lens, 0.4 -> 0.6 for dot)
+      lensX += (mouseX - lensX) * 0.22;
+      lensY += (mouseY - lensY) * 0.22;
+      
+      dotX += (mouseX - dotX) * 0.6;
+      dotY += (mouseY - dotY) * 0.6;
+      
+      // Using CSS Variables for GPU-accelerated updates without direct DOM manipulation thrash
+      lens.style.setProperty('--x', `${lensX}px`);
+      lens.style.setProperty('--y', `${lensY}px`);
+      dot.style.setProperty('--dx', `${dotX}px`);
+      dot.style.setProperty('--dy', `${dotY}px`);
+      
+      requestAnimationFrame(render);
+    };
+    requestAnimationFrame(render);
+
+    // Hover logic for links and buttons (excluding images and gallery elements)
+    const attachHoverEvents = () => {
+      document.querySelectorAll('a, button, .btn-dark, .btn-ghost').forEach(el => {
+        // Prevent duplicate listeners
+        if (el.hasAttribute('data-cursor-bound')) return;
+        
+        // Skip hover expansion for images and their gallery/album wrappers to prevent layout blurs
+        if (el.querySelector('img') || el.closest('.gallery-item') || el.closest('.portfolio-item') || el.closest('.lightbox-trigger') || el.closest('.couple-card')) {
+          return;
+        }
+        
+        el.setAttribute('data-cursor-bound', 'true');
+
+        el.addEventListener('mouseenter', () => {
+          dot.style.opacity = '0';
+          
+          lens.style.width = '72px';
+          lens.style.height = '72px';
+          // Make border visually prominent on hover using gold brand color
+          lens.style.borderColor = '#C9A84C';
+          lens.style.borderWidth = '2px';
+          lens.style.background = 'rgba(201, 168, 76, 0.05)';
+          
+          // Determine label based on element context
+          if (el.classList.contains('curtain-reveal') || el.closest('.portfolio-item') || el.closest('.gallery-item') || el.closest('.lightbox-trigger') || el.tagName === 'IMG') {
+             lens.innerHTML = 'VIEW';
+          } else if (el.closest('.canvas-item') || el.closest('.g-cell')) {
+             lens.innerHTML = 'VIEW';
+          } else if (el.closest('#drag-viewport')) {
+             lens.innerHTML = 'DRAG'; 
+          } else {
+             // Leave empty for standard links
+             lens.innerHTML = ''; 
+          }
+        });
+        
+        el.addEventListener('mouseleave', () => {
+          dot.style.opacity = '1';
+          
+          lens.style.width = '32px';
+          lens.style.height = '32px';
+          // Return to default gold border
+          lens.style.borderColor = '#C9A84C';
+          lens.style.borderWidth = '1px';
+          lens.style.background = 'rgba(255,255,255,0.03)';
+          lens.innerHTML = '';
+        });
+      });
+      
+      // Specifically for the infinite canvas background drag
+      const dragViewport = document.getElementById('drag-viewport');
+      if (dragViewport && !dragViewport.hasAttribute('data-cursor-bound')) {
+        dragViewport.setAttribute('data-cursor-bound', 'true');
+        
+        dragViewport.addEventListener('mouseenter', () => {
+          lens.innerHTML = 'DRAG';
+        });
+        dragViewport.addEventListener('mousedown', () => {
+          lens.style.transform = `translate(-50%, -50%) translate(${lensX}px, ${lensY}px) scale(0.85)`;
+        });
+        window.addEventListener('mouseup', () => {
+          // No blur needed
+        });
+      }
+    };
+
+    attachHoverEvents();
+    
+    // Reattach when DOM changes
+    const observer = new MutationObserver(attachHoverEvents);
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  document.addEventListener('astro:page-load', initCursor);
+</script>

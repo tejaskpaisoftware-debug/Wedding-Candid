@@ -1,0 +1,102 @@
+---
+/**
+ * FeaturedAlbum.astro
+ * Ultra-Luxury Editorial Hover Accordion Layout
+ */
+const album = [
+  { src: '/homepage/DJI_0639.jpg', title: 'The Beginning', sub: 'Wedding Candid Identity' },
+  { src: '/images/gallery/opt/1M4A8828.webp', title: 'Eternal Unions', sub: 'Romantic Escape' },
+  { src: '/images/gallery/opt/WC_13299.webp', title: 'The Ceremony', sub: 'Golden Hour Story' },
+  { src: '/homepage/WC_11751.JPG', title: 'Modern Soul', sub: 'Editorial Session' },
+  { src: '/images/gallery/opt/MBJ_5953.webp', title: 'Raw Portraits', sub: 'Timeless Emotion' }
+];
+import OptimizedImage from './OptimizedImage.astro';
+---
+
+<section class="luxury-accordion-wrapper relative w-full h-[85vh] bg-[#1a1814] overflow-hidden my-32">
+  <div class="hover-accordion w-full h-full flex flex-col md:flex-row shadow-2xl">
+    {album.map((item, i) => (
+      <div 
+        class="accordion-panel group relative h-full flex-1 transition-all duration-[800ms] cubic-bezier-luxury overflow-hidden cursor-pointer" 
+        style="will-change: flex-grow, transform;"
+        data-index={i}
+      >
+        
+        <!-- Image Background -->
+        <div class="absolute inset-0 w-full h-full">
+          <OptimizedImage 
+            src={item.src} 
+            alt={item.title} 
+            class="w-full h-full object-cover transition-all duration-[1200ms] scale-105 group-hover:scale-100 opacity-60 group-hover:opacity-100 filter grayscale-[80%] group-hover:grayscale-0"
+            loading="lazy"
+          />
+        </div>
+
+        <!-- Vignette Mask -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent opacity-90 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"></div>
+
+        <!-- Text Content -->
+        <div class="absolute bottom-8 left-6 md:bottom-12 md:left-12 right-6 text-white flex flex-col justify-end transform translate-y-6 group-hover:translate-y-0 transition-all duration-[800ms] opacity-0 group-hover:opacity-100 z-10">
+          <p class="font-sans text-[9px] md:text-[11px] tracking-[0.4em] uppercase text-[#C9A84C] mb-3 md:mb-5 opacity-0 group-hover:opacity-100 transition-opacity duration-[800ms] delay-150">
+            {item.sub}
+          </p>
+          <h2 class="font-serif text-3xl md:text-5xl lg:text-7xl font-light tracking-wide leading-tight whitespace-nowrap drop-shadow-xl">
+            {item.title}
+          </h2>
+        </div>
+        
+        <!-- Vertical Number / Title (when collapsed) -->
+        <div class="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity duration-500 text-white z-0 pointer-events-none">
+          <span class="font-sans text-[10px] tracking-[0.3em] md:-rotate-90 whitespace-nowrap opacity-60 uppercase">
+            0{i + 1} // {item.title}
+          </span>
+        </div>
+
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .cubic-bezier-luxury {
+    transition-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  
+  .accordion-panel {
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .accordion-panel:last-child {
+    border-right: none;
+  }
+
+  /* Desktop Hover Expansion */
+  @media (min-width: 768px) {
+    .accordion-panel:hover {
+      flex-grow: 4; /* Massive expansion like a magazine spread */
+    }
+    .hover-accordion:hover .accordion-panel:not(:hover) {
+      flex-grow: 0.6;
+      filter: brightness(0.3); /* Crushes other images to draw focus */
+    }
+  }
+
+  /* Mobile Layout - Stacks vertically and expands upon touch/scroll */
+  @media (max-width: 767px) {
+    .luxury-accordion-wrapper { height: 75vh; }
+    .accordion-panel {
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      min-height: 80px; /* Fixed minimum to prevent collapse jump */
+    }
+    .accordion-panel:last-child {
+      border-bottom: none;
+    }
+    .accordion-panel:hover {
+      flex-grow: 12; /* Larger expansion needed for vertical focus */
+    }
+    .hover-accordion:hover .accordion-panel:not(:hover) {
+      flex-grow: 1; /* Keep siblings slightly visible */
+      filter: brightness(0.4);
+    }
+  }
+</style>

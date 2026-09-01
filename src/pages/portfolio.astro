@@ -1,0 +1,664 @@
+---
+import Layout from '../layouts/Layout.astro';
+import OptimizedImage from '../components/OptimizedImage.astro';
+import StickyCopyright from '../components/StickyCopyright.astro';
+import { getImage } from 'astro:assets';
+
+// Dynamically fetch images for the quick portfolio
+const globImages = import.meta.glob<{ default: ImageMetadata }>('/public/images/gallery/quick-portfolio/**/*.{jpeg,jpg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}');
+const myImagesKeys = Object.keys(globImages);
+
+const loadedImages = await Promise.all(myImagesKeys.map(async key => {
+  try {
+    const mod = await globImages[key]();
+    return {
+      src: key.replace('/public', ''),
+      metadata: mod.default
+    };
+  } catch(e) { return null; }
+}));
+
+let validImages = loadedImages.filter(img => img !== null);
+
+// Images to completely remove from the gallery (avoid duplicates of the red backlight / hugging couple shoot, and the couple under the tree/wedding shoot/Haldi)
+const excludedFiles = [
+  'WC__7232.jpg', 'WC__8428.jpg', 'WC__6391.jpg', 
+  '083A8242.jpg', '083A8260.jpg', '083A8355.jpg',
+  'WC__4597.jpg', 'WC__5748.jpg', 'WC__7186.jpg',
+  'SDPH9921.jpg', 'SAM_2941.jpg', 'SDPH2467.jpg',
+  'SAM_2009.jpg', 'SAM_2023.jpg', 'SAM_3184.jpg',
+  'SAM_3321.jpg', 'SAM_3355.jpg', 'SAM_3356.jpg',
+  'SAM_3678.jpg', 'SAM_9682.JPG', 'SAM_3258.jpg',
+  'SAM_4750.jpg', 'WC_14557.JPG'
+];
+
+// Filter out excluded images first
+validImages = validImages.filter(img => {
+  return !excludedFiles.some(f => img.src.toLowerCase().endsWith(f.toLowerCase()));
+});
+
+// Centralized order of images in the gallery (easy to rearrange by changing position in this array)
+const imageOrder = [
+  "083A8252.jpg",
+  "HR6_1343.jpg",
+  "WC__6897.jpg",
+  "WC__2755.jpg",
+  "WC__3083.JPG",
+  "MBJ_6101.JPG",
+  "WC__7778.jpg",
+  "SAM_3225.jpg",
+  "WC__2843.jpg",
+  "WC_15285.JPG",
+  "SDPH4193.jpg",
+  "WC__3468.JPG",
+  "WC__6899.jpg",
+  "WC__9566.jpg",
+  "WC_14175.JPG",
+  "WC__5872.jpg",
+  "WC__7751.jpg",
+  "WC_14450.jpg",
+  "WC__7556.jpg",
+  "SDPH1481.jpg",
+  "WC__0278.jpg",
+  "WC__7172.jpg",
+  "WC__6892.JPG",
+  "WC__8181.JPG",
+  "WC_15124.JPG",
+  "WC_19833.jpg",
+  "WC__5859.jpg",
+  "WC_14548.jpg",
+  "SAM_3031.jpg",
+  "WC_17407.JPG",
+  "MBJ_6025.JPG",
+  "WC__0444.jpg",
+  "WC__7183.jpg",
+  "WC_17297.JPG",
+  "SDPH2105.jpg",
+  "WC__9963.JPG",
+  "WC__5671.jpg",
+  "SAM_3109.jpg",
+  "WC__0858.jpg",
+  "WC_13885.JPG",
+  "SAM_3380.jpg",
+  "MBJ_4897.jpg",
+  "WC__7515.jpg",
+  "WC__1619.jpg",
+  "WC__6814.jpg",
+  "IMG_2653.JPG",
+  "DJI_0674.jpg",
+  "WC_13864.JPG",
+  "WC_19065.JPG",
+  "WC__9711.jpg",
+  "WC__7479.jpg",
+  "SAM_1939.jpg",
+  "1M4A8828.jpg",
+  "WC__7147.jpg",
+  "SSP01330.JPG",
+  "WC_15208.JPG",
+  "WC__7050.jpg",
+  "WC_14429.JPG",
+  "WC__3127.JPG",
+  "WC__4600.JPG",
+  "DJI_20241209172706_0093_D_FLYCAPTURE.jpg",
+  "WC_17104.JPG",
+  "WC__6882.jpg",
+  "WC_14418.JPG",
+  "IMG_2922.jpg",
+  "WC__2911.jpg",
+  "SSP01314.jpg",
+  "SAM_4773.jpg",
+  "WC__0967.jpg",
+  "SDPH1468.jpg",
+  "SAM_4570.jpg",
+  "IMG_3670.jpg",
+  "SAM_5797.jpg",
+  "MBJ_0152.jpg",
+  "WC_13299.jpg",
+  "WC_14153.JPG",
+  "IMG_4312.jpg",
+  "WC__0334.jpg",
+  "WC_17354.JPG",
+  "WC__1596.jpg",
+  "WC__7804.jpg",
+  "SAM_0359.jpg",
+  "MBJ_5953.jpg",
+  "WC_14763.JPG",
+  "SAM_0545.jpg",
+  "WC__7172.jpg",
+  "WC__8575.jpg",
+  "WC__7781.jpg",
+  "DJI_0639.jpg",
+  "IMG_3506.jpg",
+  "WC__0146.JPG",
+  "WC__2629-2.jpg",
+  "WC__0838.jpg",
+  "WC__2862.jpg",
+  "IMG_4155.jpg",
+  "WC__2758.jpg",
+  "IMG_2885.jpg",
+  "bw_noir_cover.png",
+  "WC_15199.JPG",
+  "SAM_3532.jpg",
+  "SDPH1596.jpg",
+  "WC_11751.JPG",
+  "WC__7608.jpg",
+  "WC_10185.jpg",
+  "WC__2668.JPG",
+  "IMG_3944.jpg",
+  "HR6_0365.JPG",
+  "SAI_5291.jpg",
+  "SAM_4890.JPG",
+  "WC_15330.JPG",
+  "WC__7210.jpg",
+  "WC_14353.JPG",
+  "SDPH3916.jpg"
+];
+
+// Sort images based on the imageOrder array
+const imagesMap = new Map();
+validImages.forEach(img => {
+  const filename = img.src.split('/').pop().toLowerCase();
+  imagesMap.set(filename, img);
+});
+
+const orderedImages = [];
+imageOrder.forEach(filename => {
+  const key = filename.toLowerCase();
+  const img = imagesMap.get(key);
+  if (img) {
+    orderedImages.push(img);
+    imagesMap.delete(key);
+  }
+});
+
+// Append any files found in the folder that are not in the explicit list (safety fallback)
+imagesMap.forEach(img => {
+  orderedImages.push(img);
+});
+
+validImages = orderedImages;
+
+const optimizedPortfolioImages = await Promise.all(validImages.map(async (img) => {
+  if (img.metadata) {
+    const optimized = await getImage({
+      src: img.metadata,
+      width: 1600,
+      format: 'webp',
+      quality: 85
+    });
+    return {
+      raw: img.src,
+      optimized: optimized.src
+    };
+  }
+  return {
+    raw: img.src,
+    optimized: img.src
+  };
+}));
+---
+
+<Layout hideGlobalPreloader={true}>
+  <article class="portfolio-exhibition">
+    <header class="portfolio-header">
+      <h1 class="portfolio-title">Portfolio <em>Exhibition</em></h1>
+    </header>
+
+    <section class="story-gallery-sec" id="gallery-section">
+      <div class="masonry-grid">
+        {validImages.map((img, i) => {
+          // Fallback to client-side aspect ratio script if metadata not available, but calculate dynamically here if it is
+          const ratio = img.metadata ? `${img.metadata.width}/${img.metadata.height}` : 'auto';
+          return (
+            <div class="gallery-item" data-index={i} data-full={optimizedPortfolioImages[i].optimized} style={`aspect-ratio: ${ratio}`}>
+              <div class="gallery-item-inner">
+                <OptimizedImage
+                  src={img.src}
+                  alt={`Wedding Candid ${i + 1}`}
+                  loading="lazy"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+
+
+
+    <!-- Light Lightbox -->
+    <div id="portfolioLightbox" class="port-lightbox" hidden>
+      <div class="port-lb-header">
+        
+        <button class="port-lb-close" id="portClose">✕</button>
+      </div>
+      <div class="port-lb-stage">
+        <button class="port-lb-arrow prev" id="portPrev">&#8592;</button>
+        <div class="port-lb-img-wrap">
+          <img id="portLbBg" class="port-lb-bg" src="" alt="" aria-hidden="true" />
+          <img id="portLbImg" src="" alt="Portfolio View" />
+        </div>
+        <button class="port-lb-arrow next" id="portNext">&#8594;</button>
+      </div>
+    </div>
+    
+  </article>
+</Layout>
+
+<style>
+  :root {
+    --paper: #f5f1eb;
+    --ink: #1a1814;
+    --gold: #b68b40;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .portfolio-exhibition {
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 100px 0 8rem;
+  }
+
+  .portfolio-header {
+    text-align: center;
+    margin-bottom: 60px;
+    padding: 0 2rem;
+  }
+
+  .portfolio-title {
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.5rem;
+  }
+  .portfolio-title em { font-style: italic; color: var(--gold); }
+
+  /* ── Masonry Grid ── */
+  .story-gallery-sec {
+    --grid-gap: 0.8vw;
+    padding: 0 2vw 6rem;
+  }
+  .masonry-grid {
+    column-count: 3;
+    column-gap: var(--grid-gap);
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .masonry-grid { column-count: 2; }
+    .story-gallery-sec { --grid-gap: 2vw; padding: 0 4vw 4rem; }
+  }
+  @media (max-width: 480px) {
+    .masonry-grid { column-count: 1; }
+    .story-gallery-sec { --grid-gap: 4vw; padding: 0 5vw 3rem; }
+  }
+
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: var(--grid-gap);
+    overflow: hidden;
+    background: #e8e4de;
+    cursor: zoom-in;
+    min-height: 80px;
+  }
+  .gallery-item-inner { position: relative; width: 100%; height: 100%; }
+  .gallery-item img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: transform 0.8s var(--ease);
+  }
+  .gallery-item:hover img { transform: scale(1.04); }
+
+  .portfolio-footer {
+    text-align: center;
+    padding: 80px 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    opacity: 0.8;
+  }
+  .brand-text {
+    font-family: var(--font-serif);
+    font-size: 0.85rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+  .copyright-text {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* ── Immersive Lightbox ── */
+  .port-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s var(--ease), visibility 0.4s;
+    overflow: hidden;
+  }
+  .port-lightbox.open { opacity: 1; visibility: visible; }
+
+  .port-lb-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    padding: 0 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 20;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), transparent);
+    pointer-events: none;
+  }
+  .port-lb-close {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s, transform 0.2s;
+    line-height: 1;
+    padding: 1rem;
+    pointer-events: auto;
+  }
+  .port-lb-close:hover { opacity: 1; transform: scale(1.1); }
+
+  .port-lb-stage {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .port-lb-img-wrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: visible;
+  }
+  
+  .port-lb-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(80px) brightness(0.4);
+    opacity: 0;
+    transition: opacity 0.8s var(--ease);
+    z-index: 1;
+    transform: scale(1.1);
+  }
+
+  #portLbImg {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - 200px);
+    max-height: 100vh;
+    object-fit: contain;
+    transition: opacity 0.3s ease, transform 0.5s var(--ease);
+    will-change: transform, opacity;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Orientation Logic - only control background opacity, never crop image */
+  .port-lightbox.is-landscape .port-lb-bg {
+    opacity: 0;
+  }
+
+  .port-lightbox.is-portrait .port-lb-bg {
+    opacity: 1;
+  }
+
+  .port-lb-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s var(--ease);
+  }
+  .port-lb-arrow:hover {
+    background: #fff;
+    color: #000;
+    border-color: #fff;
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .port-lb-arrow.prev { left: 3rem; }
+  .port-lb-arrow.next { right: 3rem; }
+
+  @media (max-width: 768px) {
+    .port-lb-header { padding: 0 1.5rem; height: 60px; }
+    .port-lb-arrow { width: 45px; height: 45px; font-size: 1.1rem; }
+    .port-lb-arrow.prev { left: 1rem; }
+    .port-lb-arrow.next { right: 1rem; }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  document.addEventListener('astro:page-load', () => {
+    const lightbox = document.getElementById('portfolioLightbox');
+    const lbImg    = document.getElementById('portLbImg');
+    const lbBg     = document.getElementById('portLbBg');
+    const closeBtn = document.getElementById('portClose');
+    const prevBtn  = document.getElementById('portPrev');
+    const nextBtn  = document.getElementById('portNext');
+    const items    = Array.from(document.querySelectorAll('.gallery-item'));
+    
+    // Load high-resolution optimized sources
+    const srcs     = items.map(it => it.getAttribute('data-full') || it.querySelector('img').src);
+    const total    = srcs.length;
+    let cIdx       = 0;
+
+    if (!lightbox || !items.length) return;
+
+    // ── Apply real aspect ratio from each image's natural dimensions ──
+    items.forEach(item => {
+      const img = item.querySelector('img');
+      const applyRatio = () => {
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        if (w && h) {
+          item.style.aspectRatio = `${w} / ${h}`;
+        }
+      };
+      if (img.complete && img.naturalWidth) {
+        applyRatio();
+      } else {
+        img.addEventListener('load', applyRatio, { once: true });
+      }
+    });
+
+    // ── Preload adjacent images
+    function preloadAdjacent() {
+      if (total <= 1) return;
+      const toPreload = [
+        (cIdx + 1) % total,
+        (cIdx + 2) % total,
+        (cIdx - 1 + total) % total,
+        (cIdx - 2 + total) % total
+      ];
+      toPreload.forEach(idx => {
+        const url = srcs[idx];
+        if (url) {
+          const img = new Image();
+          img.src = url;
+        }
+      });
+    }
+
+    // ── Lightbox ──
+    function updateLb() {
+      const src = srcs[cIdx];
+      lbImg.src = src;
+      lbBg.src  = src;
+
+      // Detect orientation
+      const tempImg = new Image();
+      tempImg.src = src;
+      tempImg.onload = () => {
+        lightbox.classList.remove('is-landscape', 'is-portrait');
+        if (tempImg.naturalWidth > tempImg.naturalHeight) {
+          lightbox.classList.add('is-landscape');
+        } else {
+          lightbox.classList.add('is-portrait');
+        }
+      };
+      
+      preloadAdjacent();
+    }
+
+    function openLb(i) {
+      cIdx = i;
+      updateLb();
+      lightbox.removeAttribute('hidden');
+      requestAnimationFrame(() => lightbox.classList.add('open'));
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLb() {
+      lightbox.classList.remove('open');
+      setTimeout(() => {
+        lightbox.setAttribute('hidden', '');
+        document.body.style.overflow = '';
+      }, 420);
+    }
+
+    function navigate(dir) {
+      cIdx = (cIdx + dir + total) % total;
+      
+      // GSAP transition: slide and fade
+      gsap.to(lbImg, {
+        x: dir > 0 ? -60 : 60,
+        opacity: 0,
+        duration: 0.2,
+        ease: "power2.in",
+        onComplete: () => {
+          updateLb();
+          gsap.set(lbImg, { x: dir > 0 ? 60 : -60, opacity: 0 });
+          gsap.to(lbImg, {
+            x: 0,
+            opacity: 1,
+            duration: 0.25,
+            ease: "power2.out"
+          });
+        }
+      });
+      
+      gsap.to(lbBg, {
+        opacity: 0,
+        duration: 0.2,
+        onComplete: () => {
+          lbBg.src = srcs[cIdx];
+          gsap.to(lbBg, {
+            opacity: lightbox.classList.contains('is-portrait') ? 1 : 0,
+            duration: 0.25
+          });
+        }
+      });
+    }
+
+    items.forEach((item, i) => item.addEventListener('click', () => openLb(i)));
+    closeBtn.addEventListener('click', closeLb);
+    prevBtn.addEventListener('click', () => navigate(-1));
+    nextBtn.addEventListener('click', () => navigate(1));
+
+    // Swipe gestures
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let isSwiping = false;
+
+    lightbox.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isSwiping = true;
+    }, { passive: true });
+
+    lightbox.addEventListener('touchmove', e => {
+      if (!isSwiping) return;
+      touchEndX = e.touches[0].clientX;
+      touchEndY = e.touches[0].clientY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        gsap.set(lbImg, { x: deltaX * 0.4 });
+      }
+    }, { passive: true });
+
+    lightbox.addEventListener('touchend', e => {
+      if (!isSwiping) return;
+      isSwiping = false;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      const threshold = 60;
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
+        if (deltaX < 0) {
+          navigate(1);
+        } else {
+          navigate(-1);
+        }
+      } else {
+        gsap.to(lbImg, { x: 0, duration: 0.2, ease: "power2.out" });
+      }
+      touchStartX = 0;
+      touchStartY = 0;
+      touchEndX = 0;
+      touchEndY = 0;
+    }, { passive: true });
+
+    lightbox.addEventListener('click', e => {
+      if (Math.abs(touchEndX - touchStartX) > 10) return;
+      if (e.target === lightbox || e.target.classList.contains('port-lb-stage') || e.target.classList.contains('port-lb-img-wrap')) {
+        closeLb();
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'ArrowLeft')  navigate(-1);
+      if (e.key === 'ArrowRight') navigate(1);
+      if (e.key === 'Escape')     closeLb();
+    });
+  });
+</script>
