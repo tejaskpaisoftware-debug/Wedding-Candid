@@ -4,27 +4,31 @@ import Layout from '../layouts/Layout.astro';
 const testimonials = [
   {
     name: 'Aashvi & Tej',
-    image: '/images/gallery/aashvi-tej/sq5/WC__9621.jpg',
+    image: '/images/gallery/aashvi-tej/sq3/WC__8251.jpg',
     quote: "We wanted to thank you for all the hardwork that you and your team did for us throughout the wedding. Our memories are going to be created through you guys. Thanks for being so easy going and enjoying it with us. You and your team were amazing and keep up with this work.",
     location: 'Wedding Celebration'
   },
   {
     name: 'Mayur & Shivani',
+    image: '/images/gallery/mayur-shivani/WC__6419.jpg',
     quote: "Best decision we made in terms of selecting your team out of many others we scouted in Vadodara. Team was friendly and captured our best moments as we needed. Our family loved all the candid videos and photos. Thanks for all your hardwork making our wedding memorable.",
     location: 'Vadodara Wedding'
   },
   {
     name: 'Mansi & Prit',
+    image: '/images/gallery/Mansi & Prit.JPEG',
     quote: "Just wanted to say a huge thank you to you and your incredible team! We're absolutely in love with the photos and videos. I honestly don't have words to express how much I loved it. Every moment, every emotion, every tiny detail was captured so beautifully.",
-    location: 'Main Exhibition'
+    location: 'Destination Wedding'
   },
   {
     name: 'Dhwani & Parth',
+    image: '/images/gallery/Dhwani & Parth.JPEG',
     quote: "Hi @Wedding Candid (Deep Mistry) This is absolutely amazing! We loved it - thank you so much to you and your team for all your hard work and for capturing such beautiful and memorable moments. Truly, this is wonderful. Thanks again!",
     location: 'Event Day'
   },
   {
     name: 'Vishwa & Vishu',
+    image: '/images/gallery/vishwa-vishu/sq4/SAM_8290.JPG',
     quote: "We are incredibly grateful to you and you team for capturing our wedding day so beautifully. Your artistry, precision, and dedication went far beyond our expectations. Every frame reflects not only your technical excellence but also your genuine passion.",
     location: 'Grand Wedding'
   }
@@ -54,17 +58,9 @@ const testimonials = [
       <!-- Testimonials Rail -->
       <main class="testimonial-rail">
         {testimonials.map((t, i) => (
-          <div class="testimonial-gate">
-            {i % 2 !== 0 && t.image && (
-              <div class="testimonial-side-image pull-left" data-scroll-reveal>
-                <img src={t.image} alt={t.name} loading="lazy" />
-              </div>
-            )}
-            
-            <div 
-              class={`testimonial-float-card ${i % 2 === 0 ? 'pull-left' : 'pull-right'}`}
-              data-scroll-reveal
-            >
+          <div class={`testimonial-gate ${i % 2 === 0 ? 'image-right' : 'image-left'}`}>
+            <!-- Text Card -->
+            <div class="testimonial-float-card" data-scroll-reveal>
               <div class="quote-mark">“</div>
               <blockquote class="quote-text">
                 {t.quote}
@@ -75,10 +71,27 @@ const testimonials = [
               </div>
             </div>
 
-            {i % 2 === 0 && t.image && (
-              <div class="testimonial-side-image pull-right" data-scroll-reveal>
+            <!-- Aesthetic Connector -->
+            <div class="testimonial-connector" data-scroll-reveal>
+               {t.image && (
+                 <div class="animated-infinity">
+                   <svg width="120" height="60" viewBox="0 0 100 50" fill="none" overflow="visible">
+                     <!-- Background faint path -->
+                     <path class="infinity-bg" d="M 50,25 C 30,45 10,45 10,25 C 10,5 30,5 50,25 C 70,45 90,45 90,25 C 90,5 70,5 50,25 Z" />
+                     <!-- Animated glowing path -->
+                     <path class="infinity-path" d="M 50,25 C 30,45 10,45 10,25 C 10,5 30,5 50,25 C 70,45 90,45 90,25 C 90,5 70,5 50,25 Z" />
+                   </svg>
+                 </div>
+               )}
+            </div>
+
+            <!-- Side Image or Empty Space -->
+            {t.image ? (
+              <div class="testimonial-side-image" data-scroll-reveal>
                 <img src={t.image} alt={t.name} loading="lazy" />
               </div>
+            ) : (
+              <div class="testimonial-empty-space"></div>
             )}
           </div>
         ))}
@@ -135,11 +148,31 @@ const testimonials = [
 
   /* Testimonials */
   .testimonial-rail { padding: 0 5vw 2vh; }
-  .testimonial-gate { display: flex; align-items: center; justify-content: center; padding: 1.5rem 0; }
+  .testimonial-gate { 
+    display: grid; 
+    grid-template-columns: 1fr auto 1fr; 
+    align-items: center; 
+    gap: 4vw; 
+    padding: 3rem 0; 
+    max-width: 1150px; 
+    margin: 0 auto; 
+  }
   
+  .testimonial-gate.image-left .testimonial-float-card { order: 3; }
+  .testimonial-gate.image-left .testimonial-connector { order: 2; transform: scaleX(-1); }
+  .testimonial-gate.image-left .testimonial-side-image,
+  .testimonial-gate.image-left .testimonial-empty-space { order: 1; }
+
+  .testimonial-gate.image-right .testimonial-float-card { order: 1; }
+  .testimonial-gate.image-right .testimonial-connector { order: 2; }
+  .testimonial-gate.image-right .testimonial-side-image,
+  .testimonial-gate.image-right .testimonial-empty-space { order: 3; }
+
   .testimonial-float-card { 
-    max-width: 650px;
-    padding: 3rem; 
+    max-width: 500px;
+    width: 100%;
+    height: 550px;
+    padding: 2.5rem; 
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -147,30 +180,62 @@ const testimonials = [
     border-radius: 12px;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.025);
     opacity: 0; transform: translateY(60px); transition: all 1.2s var(--ease);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .testimonial-float-card.visible { opacity: 1; transform: translateY(0); }
-  .pull-left { margin-right: auto; margin-left: 5vw; }
-  .pull-right { margin-left: auto; margin-right: 5vw; }
+
+  .testimonial-connector {
+    opacity: 0; transform: translateY(60px) scale(0.9); transition: all 1.2s var(--ease);
+    display: flex; align-items: center; justify-content: center; padding: 0 1rem;
+  }
+  .testimonial-connector.visible { opacity: 0.8; transform: translateY(0) scale(1); }
+
+  .infinity-bg {
+    stroke: var(--gold);
+    stroke-width: 2.5;
+    opacity: 0.15;
+  }
+  .infinity-path {
+    stroke: var(--gold);
+    stroke-width: 4.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 60 200;
+    animation: flowInfinity 3s linear infinite;
+    filter: drop-shadow(0 0 8px rgba(182, 139, 64, 0.8));
+  }
+  @keyframes flowInfinity {
+    100% { stroke-dashoffset: -260; }
+  }
 
   .quote-mark { font-family: var(--font-serif); font-size: 4rem; color: var(--gold); opacity: 0.25; line-height: 1; margin-bottom: -1rem; }
-  .quote-text { font-family: var(--font-serif); font-size: clamp(1.15rem, 1.8vw, 1.55rem); line-height: 1.65; font-style: italic; color: var(--ink); font-weight: 350; margin-bottom: 1.8rem; }
-  .author-block { border-left: 1px solid var(--gold); padding-left: 1.5rem; }
+  .quote-text { font-family: var(--font-serif); font-size: clamp(1.25rem, 2vw, 1.65rem); line-height: 1.6; font-style: italic; color: var(--ink); font-weight: 350; margin-bottom: 1.8rem; }
+  .author-block { border-left: 1px solid var(--gold); padding-left: 1.5rem; margin-top: auto; }
   .author-name { font-family: var(--font-sans); font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink); margin-bottom: 0.5rem; }
   .author-loc { font-family: var(--font-sans); font-size: 0.65rem; letter-spacing: 0.2em; color: rgba(0,0,0,0.5); text-transform: uppercase; }
 
   .testimonial-side-image {
-    max-width: 45vw;
-    width: 600px;
-    height: 400px;
+    max-width: 500px;
+    width: 100%;
+    height: 550px;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.05);
     opacity: 0; transform: translateY(60px); transition: all 1.2s var(--ease);
   }
   .testimonial-side-image.visible { opacity: 1; transform: translateY(0); }
-  .testimonial-side-image img {
-    width: 100%; height: 100%; object-fit: cover;
+  .testimonial-side-image img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    object-position: center 20%;
+    display: block; 
   }
+  .order-first { order: -1; }
+  .order-last { order: 1; }
+  .testimonial-empty-space { width: 100%; }
 
   /* Stats */
   .test-stats-grid { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.05); padding: 3rem 0; margin: 3vh 5vw; }
@@ -186,10 +251,13 @@ const testimonials = [
   .booking-cta-btn:hover { background: var(--gold); color: var(--ink); }
 
   @media (max-width: 900px) {
-    .testimonial-gate { flex-direction: column; gap: 2.5rem; padding: 2rem 0; }
-    .testimonial-float-card { padding: 1.5rem 2rem; margin: 0 auto; width: 90%; order: 1; }
-    .testimonial-side-image { width: 90%; max-width: none; height: 350px; margin: 0 auto; order: 2; }
-    .pull-left, .pull-right { margin: 0 auto; }
+    .testimonial-gate { grid-template-columns: 1fr; gap: 2rem; padding: 2rem 0; }
+    .testimonial-gate.image-left .testimonial-float-card,
+    .testimonial-gate.image-right .testimonial-float-card { order: 1; width: 100%; max-width: 90%; height: auto; padding: 2rem; margin: 0 auto; }
+    .testimonial-gate.image-left .testimonial-side-image,
+    .testimonial-gate.image-right .testimonial-side-image { order: 2; width: 100%; max-width: 90%; height: 400px; margin: 0 auto; }
+    .testimonial-connector { display: none; }
+    .testimonial-empty-space { display: none; }
   }
 </style>
 
