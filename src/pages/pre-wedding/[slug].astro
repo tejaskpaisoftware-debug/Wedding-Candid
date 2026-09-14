@@ -322,7 +322,7 @@ const finalShuffledImages = (hasSqFolders && isSequential) ? validImages : dispe
         <div class="hero-bg-overlay"></div>
       </div>
       <div class="hero-content-overlay">
-        <p class="story-of-tag">PRE � WEDDING</p>
+        <p class="story-of-tag">PRE ✦ WEDDING</p>
         <h1 class="couple-display-title">
           {story.name1} <span class="amp">&</span> {story.name2}
         </h1>
@@ -452,45 +452,39 @@ const finalShuffledImages = (hasSqFolders && isSequential) ? validImages : dispe
     from { transform: scale(1); }
     to   { transform: scale(1.06); }
   }
-  /* Soft vignette overlay — darkens edges, keeps centre clear */
+  /* Soft vignette overlay — darkens edges subtly for navbar & text contrast, keeps centre 100% crystal clear */
   .hero-bg-overlay {
     position: absolute;
     inset: 0;
     background: linear-gradient(
       to bottom,
-      rgba(26, 20, 16, 0.4) 0%,      /* Top dark vignette for navbar legibility */
-      rgba(245, 242, 237, 0.1) 40%,  /* Warm translucent center */
-      rgba(245, 242, 237, 0.85) 100% /* Grounding paper beige vignette */
+      rgba(0, 0, 0, 0.35) 0%,
+      rgba(0, 0, 0, 0.0) 35%,
+      rgba(0, 0, 0, 0.0) 65%,
+      rgba(0, 0, 0, 0.4) 100%
     );
     z-index: 2;
   }
 
-  /* Text overlay — centred with highly aesthetic, responsive radial mist shroud */
+  /* Text overlay — clean transparent layout without foggy blur */
   .hero-content-overlay {
     position: relative;
     z-index: 10;
     max-width: 85vw;
     text-align: center;
-    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.5rem, 6vw, 5rem);
-    border-radius: 240px;
-    background: radial-gradient(
-      circle,
-      rgba(245, 242, 237, 0.85) 0%,
-      rgba(245, 242, 237, 0.5) 55%,
-      rgba(245, 242, 237, 0) 80%
-    );
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    background: transparent;
     margin: 0 auto;
-    backdrop-filter: blur(1px); /* Delicate micro-blur for extra editorial legibility */
   }
   .story-of-tag {
     font-family: var(--font-sans);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     letter-spacing: 0.5em;
-    color: rgba(182, 139, 64, 0.95);
+    color: var(--gold);
     margin-bottom: 1.2rem;
     opacity: 0;
     display: block;
-    text-shadow: 0 1px 4px rgba(245, 242, 237, 0.9);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.9);
   }
   .couple-display-title {
     font-family: var(--font-serif);
@@ -498,22 +492,22 @@ const finalShuffledImages = (hasSqFolders && isSequential) ? validImages : dispe
     font-weight: 300;
     line-height: 0.95;
     margin: 0 0 1.2rem;
-    color: var(--ink); /* DARK COLOR for readability */
+    color: #ffffff;
     opacity: 0;
     transform: translateY(24px);
     letter-spacing: 0.01em;
-    text-shadow: 0 1px 8px rgba(245, 242, 237, 0.95),
-                 0 2px 20px rgba(245, 242, 237, 0.85);
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85),
+                 0 4px 30px rgba(0, 0, 0, 0.75);
   }
-  .amp { font-style: italic; color: var(--gold); margin: 0 0.6rem; }
+  .amp { font-style: italic; color: var(--gold); margin: 0 0.6rem; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8); }
   .story-subtitle {
     font-family: var(--font-sans);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     letter-spacing: 0.4em;
-    color: rgba(26, 20, 16, 0.75); /* Dark charcoal tint instead of hard white to fit the theme */
+    color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
     opacity: 0;
-    text-shadow: 0 1px 4px rgba(245, 242, 237, 0.9);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.9);
   }
 
   /* Scroll nudge — bottom-centre */
@@ -531,10 +525,10 @@ const finalShuffledImages = (hasSqFolders && isSequential) ? validImages : dispe
   }
   .scroll-hint-text {
     font-family: var(--font-sans);
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     letter-spacing: 0.4em;
-    color: var(--muted); /* Golden-charcoal tone instead of white for perfect contrast */
-    text-shadow: 0 1px 4px rgba(245, 242, 237, 0.8);
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
   }
   .scroll-hint-line {
     width: 1px;
