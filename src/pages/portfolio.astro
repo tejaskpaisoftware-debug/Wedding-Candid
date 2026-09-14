@@ -2,7 +2,6 @@
 import Layout from '../layouts/Layout.astro';
 import OptimizedImage from '../components/OptimizedImage.astro';
 import StickyCopyright from '../components/StickyCopyright.astro';
-import { getImage } from 'astro:assets';
 
 // Dynamically fetch images for the quick portfolio
 const globImages = import.meta.glob<{ default: ImageMetadata }>('/public/images/gallery/quick-portfolio/**/*.{jpeg,jpg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}');
@@ -177,25 +176,6 @@ imagesMap.forEach(img => {
 });
 
 validImages = orderedImages;
-
-const optimizedPortfolioImages = await Promise.all(validImages.map(async (img) => {
-  if (img.metadata) {
-    const optimized = await getImage({
-      src: img.metadata,
-      width: 1600,
-      format: 'webp',
-      quality: 85
-    });
-    return {
-      raw: img.src,
-      optimized: optimized.src
-    };
-  }
-  return {
-    raw: img.src,
-    optimized: img.src
-  };
-}));
 ---
 
 <Layout hideGlobalPreloader={true}>
@@ -210,7 +190,7 @@ const optimizedPortfolioImages = await Promise.all(validImages.map(async (img) =
           // Fallback to client-side aspect ratio script if metadata not available, but calculate dynamically here if it is
           const ratio = img.metadata ? `${img.metadata.width}/${img.metadata.height}` : 'auto';
           return (
-            <div class="gallery-item" data-index={i} data-full={optimizedPortfolioImages[i].optimized} style={`aspect-ratio: ${ratio}`}>
+            <div class="gallery-item" data-index={i} data-full={img.src} style={`aspect-ratio: ${ratio}`}>
               <div class="gallery-item-inner">
                 <OptimizedImage
                   src={img.src}
@@ -308,9 +288,14 @@ const optimizedPortfolioImages = await Promise.all(validImages.map(async (img) =
   .gallery-item-inner { position: relative; width: 100%; height: 100%; }
   .gallery-item img {
     width: 100%; height: 100%; object-fit: cover; display: block;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
     transition: transform 0.8s var(--ease);
   }
-  .gallery-item:hover img { transform: scale(1.04); }
+  .gallery-item:hover img { transform: scale(1.04) translateZ(0); }
 
   .portfolio-footer {
     text-align: center;

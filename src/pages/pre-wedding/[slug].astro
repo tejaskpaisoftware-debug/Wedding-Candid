@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import OptimizedImage from '../../components/OptimizedImage.astro';
-import { getImage } from 'astro:assets';
 
 export async function getStaticPaths() {
   const PRE_WEDDINGS = [
@@ -310,25 +309,6 @@ function disperseImages(images) {
 
 // For sequential couples, skip dispersal to preserve chronological order
 const finalShuffledImages = (hasSqFolders && isSequential) ? validImages : disperseImages(validImages);
-
-const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async (img) => {
-  if (img.metadata) {
-    const optimized = await getImage({
-      src: img.metadata,
-      width: 1600,
-      format: 'webp',
-      quality: 85
-    });
-    return {
-      raw: img.src,
-      optimized: optimized.src
-    };
-  }
-  return {
-    raw: img.src,
-    optimized: img.src
-  };
-}));
 ---
 
 <Layout title={`${story.name1} & ${story.name2} | Wedding Story`} hideGlobalPreloader={true}>
@@ -379,10 +359,9 @@ const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async 
           // Calculate exact aspect ratio instead of hardcoding
           const ratio = img.metadata ? `${img.metadata.width}/${img.metadata.height}` : '3/4';
           return (
-            <div class="gallery-item" data-index={i + 1} data-full={optimizedLightboxImages[i].optimized} style={`aspect-ratio: ${ratio}`}>
+            <div class="gallery-item" data-index={i + 1} data-full={img.src} style={`aspect-ratio: ${ratio}`}>
               <div class="gallery-item-inner">
                 <OptimizedImage src={img.src} alt="Shot" loading="lazy" class="w-full h-full object-cover" />
-                <div class="grain-overlay"></div>
                 <div class="item-hover-info">
                   <span class="item-names">{story.name1} & {story.name2}</span>
                 </div>
@@ -463,6 +442,10 @@ const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async 
     height: 100%;
     object-fit: cover;
     object-position: center;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
     animation: heroScale 14s ease-in-out infinite alternate;
   }
   @keyframes heroScale {
@@ -629,12 +612,21 @@ const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async 
   @media (max-width: 640px) { .masonry-grid { column-count: 1; } }
 
   .gallery-item { break-inside: avoid; margin-bottom: 1.5rem; border-radius: 0; overflow: hidden; background: #000; }
-  .gallery-item-inner { position: relative; width: 100%; height: 100%; cursor: zoom-in; }
-  .gallery-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; transition: transform 0.8s var(--ease); }
-  .grain-overlay { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stichTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E"); }
+  .gallery-item img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    border-radius: 0; 
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    transition: transform 0.8s var(--ease); 
+  }
   .item-hover-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); color: white; display: flex; justify-content: space-between; opacity: 0; transition: 0.4s; }
   .gallery-item:hover .item-hover-info { opacity: 1; }
-  .gallery-item:hover img { transform: scale(1.03); }
+  .gallery-item:hover img { transform: scale(1.03) translateZ(0); }
 
   /* Navigation Footer */
   .next-story-nav { text-align: center; padding: 8rem 2rem; border-top: 1px solid rgba(0,0,0,0.05); }
@@ -692,6 +684,11 @@ const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async 
     max-width: calc(100vw - 160px);
     max-height: calc(100vh - 80px);
     object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
     transition: opacity 0.3s ease, transform 0.5s var(--ease);
   }
 

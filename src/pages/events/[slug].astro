@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import OptimizedImage from '../../components/OptimizedImage.astro';
-import { getImage } from 'astro:assets';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -151,25 +150,6 @@ function disperseImages(images) {
 }
 
 const finalShuffledImages = disperseImages(validImages);
-
-const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async (img) => {
-  if (img.metadata) {
-    const optimized = await getImage({
-      src: img.metadata,
-      width: 1600,
-      format: 'webp',
-      quality: 85
-    });
-    return {
-      raw: img.src,
-      optimized: optimized.src
-    };
-  }
-  return {
-    raw: img.src,
-    optimized: img.src
-  };
-}));
 ---
 
 <Layout title={`${event.name1} & ${event.name2} | Wedding Story`} hideGlobalPreloader={true}>
@@ -183,7 +163,6 @@ const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async 
         <div class="hero-bg-overlay"></div>
       </div>
       <div class="hero-content-overlay">
-        <p class="story-of-tag">THE EVENT</p>
         <h1 class="couple-display-title">
           {event.name.includes(' - ') ? (
             <>{event.name.split(' - ')[0]} <span class="amp">&</span> {event.name.split(' - ')[1]}</>
@@ -191,7 +170,6 @@ const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async 
             event.name
           )}
         </h1>
-        <p class="story-subtitle">Cinematic Documentation</p>
       </div>
       <div class="hero-scroll-hint">
         <span class="scroll-hint-line"></span>
@@ -224,10 +202,9 @@ const optimizedLightboxImages = await Promise.all(finalShuffledImages.map(async 
           // Calculate exact aspect ratio instead of hardcoding
           const ratio = img.metadata ? `${img.metadata.width}/${img.metadata.height}` : '3/4';
           return (
-            <div class="gallery-item" data-index={i + 1} data-full={optimizedLightboxImages[i].optimized} style={`aspect-ratio: ${ratio}`}>
+            <div class="gallery-item" data-index={i + 1} data-full={img.src} style={`aspect-ratio: ${ratio}`}>
               <div class="gallery-item-inner">
                 <OptimizedImage src={img.src} alt="Shot" loading="lazy" class="w-full h-full object-cover" />
-                <div class="grain-overlay"></div>
                 <div class="item-hover-info">
                   <span class="item-names">{event.name}</span>
                 </div>

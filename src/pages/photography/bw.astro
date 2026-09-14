@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import OptimizedImage from '../../components/OptimizedImage.astro';
-import { getImage } from 'astro:assets';
 
 const BW_IMAGES = [
   '/images/gallery/bw/083A4644.jpg',
@@ -122,16 +121,9 @@ const loadedBWImages = await Promise.all(finalShuffledBW.map(async (src) => {
     try {
       const mod = await globImages[globKey]();
       const metadata = mod.default;
-      const optimized = await getImage({
-        src: metadata,
-        width: 1600,
-        format: 'webp',
-        quality: 85
-      });
       return {
         src,
-        metadata,
-        optimized: optimized.src
+        metadata
       };
     } catch(e) {
       console.error(`Failed to load metadata for ${src}`, e);
@@ -139,8 +131,7 @@ const loadedBWImages = await Promise.all(finalShuffledBW.map(async (src) => {
   }
   return {
     src,
-    metadata: null,
-    optimized: src
+    metadata: null
   };
 }));
 ---
@@ -163,10 +154,9 @@ const loadedBWImages = await Promise.all(finalShuffledBW.map(async (src) => {
         {loadedBWImages.map((img, i) => {
           const ratio = img.metadata ? `${img.metadata.width}/${img.metadata.height}` : '3/4';
           return (
-            <div class="gallery-item" data-index={i + 1} data-full={img.optimized} style={`aspect-ratio: ${ratio}`}>
+            <div class="gallery-item" data-index={i + 1} data-full={img.src} style={`aspect-ratio: ${ratio}`}>
               <div class="gallery-item-inner">
                 <OptimizedImage src={img.src} alt={`Noir Stories — ${i + 1}`} loading="lazy" class="w-full h-full object-cover" />
-                <div class="grain-overlay"></div>
                 <div class="item-hover-info">
                   <span class="item-names">Noir Stories</span>
                 </div>
