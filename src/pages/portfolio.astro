@@ -19,146 +19,118 @@ const loadedImages = await Promise.all(myImagesKeys.map(async key => {
 
 let validImages = loadedImages.filter(img => img !== null);
 
-// Images to completely remove from the gallery (avoid duplicates of the red backlight / hugging couple shoot, and the couple under the tree/wedding shoot/Haldi)
-const excludedFiles = [
-  'WC__7232.jpg', 'WC__8428.jpg', 'WC__6391.jpg', 
-  '083A8242.jpg', '083A8260.jpg', '083A8355.jpg',
-  'WC__4597.jpg', 'WC__5748.jpg', 'WC__7186.jpg',
-  'SDPH9921.jpg', 'SAM_2941.jpg', 'SDPH2467.jpg',
-  'SAM_2009.jpg', 'SAM_2023.jpg', 'SAM_3184.jpg',
-  'SAM_3321.jpg', 'SAM_3355.jpg', 'SAM_3356.jpg',
-  'SAM_3678.jpg', 'SAM_9682.JPG', 'SAM_3258.jpg',
-  'SAM_4750.jpg', 'WC_14557.JPG'
-];
-
-// Filter out excluded images first
-validImages = validImages.filter(img => {
-  return !excludedFiles.some(f => img.src.toLowerCase().endsWith(f.toLowerCase()));
-});
-
-// Centralized order of images in the gallery (easy to rearrange by changing position in this array)
-const imageOrder = [
-  "083A8252.jpg",
-  "HR6_1343.jpg",
-  "WC__6897.jpg",
-  "WC__2755.jpg",
-  "WC__3083.JPG",
-  "MBJ_6101.JPG",
-  "WC__7778.jpg",
-  "SAM_3225.jpg",
-  "WC__2843.jpg",
-  "WC_15285.JPG",
-  "SDPH4193.jpg",
-  "WC__3468.JPG",
-  "WC__6899.jpg",
-  "WC__9566.jpg",
-  "WC_14175.JPG",
-  "WC__5872.jpg",
-  "WC__7751.jpg",
-  "WC_14450.jpg",
-  "WC__7556.jpg",
-  "SDPH1481.jpg",
-  "WC__0278.jpg",
-  "WC__7172.jpg",
-  "WC__6892.JPG",
-  "WC__8181.JPG",
-  "WC_15124.JPG",
-  "WC_19833.jpg",
-  "WC__5859.jpg",
-  "WC_14548.jpg",
-  "SAM_3031.jpg",
-  "WC_17407.JPG",
-  "MBJ_6025.JPG",
-  "WC__0444.jpg",
-  "WC__7183.jpg",
-  "WC_17297.JPG",
-  "SDPH2105.jpg",
-  "WC__9963.JPG",
-  "WC__5671.jpg",
-  "SAM_3109.jpg",
-  "WC__0858.jpg",
-  "WC_13885.JPG",
-  "SAM_3380.jpg",
-  "MBJ_4897.jpg",
-  "WC__7515.jpg",
-  "WC__1619.jpg",
-  "WC__6814.jpg",
-  "IMG_2653.JPG",
-  "DJI_0674.jpg",
-  "WC_13864.JPG",
-  "WC_19065.JPG",
-  "WC__9711.jpg",
-  "WC__7479.jpg",
-  "SAM_1939.jpg",
-  "1M4A8828.jpg",
-  "WC__7147.jpg",
-  "SSP01330.JPG",
-  "WC_15208.JPG",
-  "WC__7050.jpg",
-  "WC_14429.JPG",
-  "WC__3127.JPG",
-  "WC__4600.JPG",
-  "DJI_20241209172706_0093_D_FLYCAPTURE.jpg",
-  "WC_17104.JPG",
-  "WC__6882.jpg",
-  "WC_14418.JPG",
-  "IMG_2922.jpg",
-  "WC__2911.jpg",
-  "SSP01314.jpg",
-  "SAM_4773.jpg",
-  "WC__0967.jpg",
-  "SDPH1468.jpg",
-  "SAM_4570.jpg",
-  "IMG_3670.jpg",
-  "SAM_5797.jpg",
-  "MBJ_0152.jpg",
-  "WC_13299.jpg",
-  "WC_14153.JPG",
-  "IMG_4312.jpg",
-  "WC__0334.jpg",
-  "WC_17354.JPG",
-  "WC__1596.jpg",
-  "WC__7804.jpg",
-  "SAM_0359.jpg",
-  "MBJ_5953.jpg",
-  "WC_14763.JPG",
-  "SAM_0545.jpg",
-  "WC__7172.jpg",
-  "WC__8575.jpg",
-  "WC__7781.jpg",
-  "DJI_0639.jpg",
-  "IMG_3506.jpg",
-  "WC__0146.JPG",
-  "WC__2629-2.jpg",
-  "WC__0838.jpg",
-  "WC__2862.jpg",
-  "IMG_4155.jpg",
-  "WC__2758.jpg",
-  "IMG_2885.jpg",
-  "bw_noir_cover.png",
-  "WC_15199.JPG",
-  "SAM_3532.jpg",
-  "SDPH1596.jpg",
-  "WC_11751.JPG",
-  "WC__7608.jpg",
-  "WC_10185.jpg",
-  "WC__2668.JPG",
-  "IMG_3944.jpg",
-  "HR6_0365.JPG",
-  "SAI_5291.jpg",
-  "SAM_4890.JPG",
-  "WC_15330.JPG",
-  "WC__7210.jpg",
-  "WC_14353.JPG",
-  "SDPH3916.jpg"
-];
-
-// Sort images based on the imageOrder array
+// All images placed inside quick-portfolio folder are included
 const imagesMap = new Map();
 validImages.forEach(img => {
   const filename = img.src.split('/').pop().toLowerCase();
   imagesMap.set(filename, img);
 });
+
+// Centralized order of images in the gallery (Top items preserved, followed by zero-collision distributed shoots)
+const imageOrder = [
+  "083A8252.jpg",
+  "WC__6897.jpg",
+  "WC__2755.jpg",
+  "WC__3083.JPG",
+  "IMG_2653.JPG",
+  "MBJ_4897.jpg",
+  "WC_10185.jpg",
+  "WC__2629-2.jpg",
+  "MBJ_5953.jpg",
+  "bw_noir_cover.png",
+  "WC__0278.jpg",
+  "IMG_2885.jpg",
+  "SAI_5291.jpg",
+  "SAM_0359.jpg",
+  "WC__2668.JPG",
+  "WC_11751.JPG",
+  "WC__6231.jpg",
+  "WC__0334.jpg",
+  "IMG_2922.jpg",
+  "SDPH3916.jpg",
+  "SDPH1468.jpg",
+  "WC__2758.jpg",
+  "SAM_0545.jpg",
+  "WC__7172.jpg",
+  "WC__0444.jpg",
+  "IMG_3506.jpg",
+  "SAM_1939.jpg",
+  "SAM_3031.jpg",
+  "WC_13299.jpg",
+  "WC__2843.jpg",
+  "WC__7183.jpg",
+  "WC__0838.jpg",
+  "WC__7608.jpg",
+  "IMG_3670.jpg",
+  "WC__5575.jpg",
+  "SDPH1481.jpg",
+  "SAM_0646.jpg",
+  "WC__7210.jpg",
+  "SAM_4570.jpg",
+  "SAM_3109.jpg",
+  "WC_13864.JPG",
+  "WC__0967.jpg",
+  "WC__2862.jpg",
+  "WC__6814.jpg",
+  "WC__7479.jpg",
+  "WC__7751.jpg",
+  "DJI_0639.jpg",
+  "IMG_3944.jpg",
+  "MBJ_0152.jpg",
+  "WC__5671.jpg",
+  "SDPH1596.jpg",
+  "WC__0146.JPG",
+  "WC__9566.jpg",
+  "WC__7147.jpg",
+  "SAM_4773.jpg",
+  "SAM_3225.jpg",
+  "WC_13885.JPG",
+  "WC__1596.jpg",
+  "WC__0858.jpg",
+  "WC__2883.jpg",
+  "WC__3127.JPG",
+  "WC__6882.jpg",
+  "WC__6899.jpg",
+  "WC__7778.jpg",
+  "WC__9711.jpg",
+  "DJI_0674.jpg",
+  "HR6_0303.JPG",
+  "IMG_4155.jpg",
+  "MBJ_6025.JPG",
+  "WC__5859.jpg",
+  "SDPH2105.jpg",
+  "WC__7515.jpg",
+  "SAM_4890.JPG",
+  "SAM_3380.jpg",
+  "SSP01314.jpg",
+  "WC_19065.JPG",
+  "WC__1619.jpg",
+  "WC__8181.JPG",
+  "WC__2911.jpg",
+  "WC__3468.JPG",
+  "WC__6886.jpg",
+  "WC__7050.jpg",
+  "WC__7781.jpg",
+  "WC__9963.JPG",
+  "DJI_20241209172706_0093_D_FLYCAPTURE.jpg",
+  "HR6_0365.JPG",
+  "IMG_4312.jpg",
+  "MBJ_6101.JPG",
+  "WC__5872.jpg",
+  "SDPH4193.jpg",
+  "WC__7556.jpg",
+  "SAM_5797.jpg",
+  "SAM_3532.jpg",
+  "SSP01330.JPG",
+  "WC_19833.jpg",
+  "WC__2107.jpg",
+  "WC__8575.jpg",
+  "WC__2923.jpg",
+  "WC__4600.JPG",
+  "WC__6892.JPG",
+  "WC__7155.jpg",
+  "WC__7804.jpg"
+];
 
 const orderedImages = [];
 imageOrder.forEach(filename => {
@@ -170,12 +142,19 @@ imageOrder.forEach(filename => {
   }
 });
 
-// Append any files found in the folder that are not in the explicit list (safety fallback)
-imagesMap.forEach(img => {
+// Append all remaining images from quick-portfolio so nothing is dropped
+imagesMap.forEach((img) => {
   orderedImages.push(img);
 });
 
 validImages = orderedImages;
+
+// Distribute images into 3 columns round-robin so Row 1 has items [0, 1, 2], Row 2 has [3, 4, 5], etc.
+const columnCount = 3;
+const columns = Array.from({ length: columnCount }, () => []);
+validImages.forEach((img, idx) => {
+  columns[idx % columnCount].push({ ...img, originalIndex: idx });
+});
 ---
 
 <Layout hideGlobalPreloader={true}>
@@ -186,31 +165,31 @@ validImages = orderedImages;
 
     <section class="story-gallery-sec" id="gallery-section">
       <div class="masonry-grid">
-        {validImages.map((img, i) => {
-          // Fallback to client-side aspect ratio script if metadata not available, but calculate dynamically here if it is
-          const ratio = img.metadata ? `${img.metadata.width}/${img.metadata.height}` : 'auto';
-          return (
-            <div class="gallery-item" data-index={i} data-full={img.src} style={`aspect-ratio: ${ratio}`}>
-              <div class="gallery-item-inner">
-                <OptimizedImage
-                  src={img.src}
-                  alt={`Wedding Candid ${i + 1}`}
-                  loading="lazy"
-                  class="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          );
-        })}
+        {columns.map((colImages) => (
+          <div class="masonry-column">
+            {colImages.map((img) => {
+              const ratio = img.metadata ? `${img.metadata.width}/${img.metadata.height}` : 'auto';
+              return (
+                <div class="gallery-item" data-index={img.originalIndex} data-full={img.src} style={`aspect-ratio: ${ratio}`}>
+                  <div class="gallery-item-inner">
+                    <OptimizedImage
+                      src={img.src}
+                      alt={`Wedding Candid ${img.originalIndex + 1}`}
+                      loading="lazy"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </section>
-
-
 
     <!-- Light Lightbox -->
     <div id="portfolioLightbox" class="port-lightbox" hidden>
       <div class="port-lb-header">
-        
         <button class="port-lb-close" id="portClose">✕</button>
       </div>
       <div class="port-lb-stage">
@@ -257,24 +236,32 @@ validImages = orderedImages;
   }
   .portfolio-title em { font-style: italic; color: var(--gold); }
 
-  /* ── Masonry Grid ── */
+  /* ── 3-Column Dispersed Grid ── */
   .story-gallery-sec {
     --grid-gap: 0.8vw;
     padding: 0 2vw 6rem;
   }
   .masonry-grid {
-    column-count: 3;
-    column-gap: var(--grid-gap);
+    display: flex;
+    gap: var(--grid-gap);
     margin-top: 1rem;
+    align-items: flex-start;
+  }
+  .masonry-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--grid-gap);
+    min-width: 0;
   }
 
   @media (max-width: 768px) {
-    .masonry-grid { column-count: 2; }
     .story-gallery-sec { --grid-gap: 2vw; padding: 0 4vw 4rem; }
+    .masonry-grid { gap: var(--grid-gap); }
   }
   @media (max-width: 480px) {
-    .masonry-grid { column-count: 1; }
     .story-gallery-sec { --grid-gap: 4vw; padding: 0 5vw 3rem; }
+    .masonry-grid { flex-direction: column; }
   }
 
   .gallery-item {
@@ -284,18 +271,22 @@ validImages = orderedImages;
     background: #e8e4de;
     cursor: zoom-in;
     min-height: 80px;
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+  .gallery-item.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
   }
   .gallery-item-inner { position: relative; width: 100%; height: 100%; }
   .gallery-item img {
     width: 100%; height: 100%; object-fit: cover; display: block;
-    image-rendering: -webkit-optimize-contrast;
     image-rendering: auto;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    transform: translateZ(0);
     transition: transform 0.8s var(--ease);
   }
-  .gallery-item:hover img { transform: scale(1.04) translateZ(0); }
+  .gallery-item:hover img { transform: scale(1.04); }
 
   .portfolio-footer {
     text-align: center;
@@ -405,9 +396,9 @@ validImages = orderedImages;
     max-height: 100vh;
     object-fit: contain;
     transition: opacity 0.3s ease, transform 0.5s var(--ease);
-    will-change: transform, opacity;
     position: relative;
     z-index: 2;
+    image-rendering: auto;
   }
 
   /* Orientation Logic - only control background opacity, never crop image */
@@ -468,8 +459,10 @@ validImages = orderedImages;
     const prevBtn  = document.getElementById('portPrev');
     const nextBtn  = document.getElementById('portNext');
     const items    = Array.from(document.querySelectorAll('.gallery-item'));
+    // Sort items by original index so lightbox sequence flows left-to-right, row-by-row
+    items.sort((a, b) => parseInt(a.getAttribute('data-index') || '0', 10) - parseInt(b.getAttribute('data-index') || '0', 10));
     
-    // Load high-resolution optimized sources
+    // Load high-resolution optimized sources in numerical order
     const srcs     = items.map(it => it.getAttribute('data-full') || it.querySelector('img').src);
     const total    = srcs.length;
     let cIdx       = 0;
@@ -490,6 +483,33 @@ validImages = orderedImages;
         applyRatio();
       } else {
         img.addEventListener('load', applyRatio, { once: true });
+      }
+    });
+
+    // ── Smooth Scroll Reveal Animation ──
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px 0px -40px 0px',
+      threshold: 0.05
+    };
+
+    const revealObserver = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    items.forEach((item, idx) => {
+      // Top items above fold reveal quickly with stagger
+      if (idx < 8) {
+        setTimeout(() => {
+          item.classList.add('is-revealed');
+        }, idx * 50);
+      } else {
+        revealObserver.observe(item);
       }
     });
 
@@ -582,7 +602,10 @@ validImages = orderedImages;
       });
     }
 
-    items.forEach((item, i) => item.addEventListener('click', () => openLb(i)));
+    items.forEach((item, i) => {
+      const idx = parseInt(item.getAttribute('data-index') || String(i), 10);
+      item.addEventListener('click', () => openLb(idx));
+    });
     closeBtn.addEventListener('click', closeLb);
     prevBtn.addEventListener('click', () => navigate(-1));
     nextBtn.addEventListener('click', () => navigate(1));

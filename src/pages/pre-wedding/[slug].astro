@@ -9,7 +9,7 @@ export async function getStaticPaths() {
       name1: 'Dhruv',
       name2: 'Henisha',
       location: 'ANCIENT TEMPLES',
-      cover: '/images/gallery/dhruv-henisha/IMG_4312.jpg',
+      cover: '/images/gallery/dhruv-henisha/sq3/IMG_4312.jpg',
       quote: "No maps. No destination. Just two people and the open road finding where the light lives.",
       images: [
         { src: '/images/gallery/dhruv-henisha/1M0A9799.jpg', caption: "Stepping into the golden hour" },
@@ -30,7 +30,7 @@ export async function getStaticPaths() {
       name1: 'Anjali',
       name2: 'Aditiya',
       location: 'GOLDEN HOUR GLOW',
-      cover: '/images/gallery/anjali-aditiya/WC__2843-2.jpg',
+      cover: '/images/gallery/anjali-aditiya/sq2/WC__2843-2.jpg',
       quote: "They did not look for love. They looked for the stars and found them in each other's eyes.",
       images: [
         { src: '/images/gallery/anjali-aditiya/WC__2428.jpg', caption: "Morning Whispers" },
@@ -51,7 +51,7 @@ export async function getStaticPaths() {
       name1: 'Malav',
       name2: 'Zeel',
       location: 'URBAN ROMANCE',
-      cover: '/images/gallery/malav-zeel/WC_13180.jpg',
+      cover: '/images/gallery/malav-zeel/WC_14428.jpg',
       quote: "In a city of millions, they were the only two people who truly saw the same sunset.",
       images: [
         { src: '/images/gallery/malav-zeel/IMG_1800.jpg', caption: "Urban Evening" },
@@ -72,7 +72,7 @@ export async function getStaticPaths() {
       name1: 'Neha',
       name2: 'Tarun',
       location: 'DESERT DREAMS',
-      cover: '/images/gallery/neha-tarun/WC__0370.jpg',
+      cover: '/images/gallery/neha-tarun/sq3/WC__0370.jpg',
       quote: "Where the desert meets the soul. Two names written in the shifting sands, never to be erased.",
       images: [
         { src: '/images/gallery/neha-tarun/SAM_9535.jpg', caption: "Desert Horizon" },
@@ -93,7 +93,7 @@ export async function getStaticPaths() {
       name1: 'Dhariya',
       name2: 'Kosha',
       location: 'LEGACY IN MOTION',
-      cover: '/images/gallery/dhariya-kosha/WC_18800.JPG',
+      cover: '/images/gallery/dhariya-kosha/sq1/WC_18800.JPG',
       quote: "Surrounded by stones that have stood for centuries, their love felt like the newest thing in the world.",
       images: [
         { src: '/images/gallery/dhariya-kosha/WC_16847.JPG', caption: "Sacred Pillars" },
@@ -176,11 +176,6 @@ const curatedImages = {
 
 const allKeys = Object.keys(globImages);
 
-// Couples that should show sq folders in strict sequential order (sq1 → sq2 → ...)
-// Others with sq folders use the dispersal engine to avoid adjacent similar poses
-const sequentialSlugs = ['anjali-aditiya'];
-const isSequential = sequentialSlugs.includes(story.slug);
-
 // Check if this couple has sq subfolders (e.g. sq1, sq2, sq3...)
 const slugSubfolderPattern = `/public/images/gallery/${story.slug}/sq`;
 const hasSqFolders = allKeys.some(k => k.toLowerCase().includes(slugSubfolderPattern.toLowerCase()));
@@ -194,29 +189,33 @@ if (hasSqFolders) {
            /\/sq\d+\//i.test(k);
   });
 
-  if (isSequential) {
-    // Sort sequentially: sq1 first, then sq2, etc.; alphabetically within each folder
-    myImagesKeys.sort((a, b) => {
-      const getSqNum = (k) => { const m = k.match(/\/sq(\d+)\//i); return m ? parseInt(m[1], 10) : 0; };
-      const getFile = (k) => k.split('/').pop();
-      const sqA = getSqNum(a), sqB = getSqNum(b);
-      if (sqA !== sqB) return sqA - sqB;
-      return getFile(a).localeCompare(getFile(b));
-    });
-  }
+  // Sort sequentially: sq1 first, then sq2, then sq3...
+  myImagesKeys.sort((a, b) => {
+    const getSqNum = (k) => { const m = k.match(/\/sq(\d+)\//i); return m ? parseInt(m[1], 10) : 0; };
+    const getFile = (k) => k.split('/').pop().toLowerCase();
+    const sqA = getSqNum(a), sqB = getSqNum(b);
+    if (sqA !== sqB) return sqA - sqB;
+    return getFile(a).localeCompare(getFile(b));
+  });
 } else {
-  // Fall back to curated list
+  // Load ALL images found in this story folder
   myImagesKeys = allKeys.filter(path => {
-    const publicPath = path.replace('/public', '');
-    return curatedImages[story.slug] && curatedImages[story.slug].includes(publicPath);
+    return path.toLowerCase().includes(`/public/images/gallery/${story.slug.toLowerCase()}/`);
   });
 
-  // Re-sort myImagesKeys to match the curated order exactly
-  myImagesKeys.sort((a, b) => {
-    const aIdx = curatedImages[story.slug].indexOf(a.replace('/public', ''));
-    const bIdx = curatedImages[story.slug].indexOf(b.replace('/public', ''));
-    return aIdx - bIdx;
-  });
+  // If curated list exists, sort to match curated order, keeping any newly added/updated images
+  if (curatedImages[story.slug]) {
+    myImagesKeys.sort((a, b) => {
+      const publicPathA = a.replace('/public', '');
+      const publicPathB = b.replace('/public', '');
+      const aIdx = curatedImages[story.slug].indexOf(publicPathA);
+      const bIdx = curatedImages[story.slug].indexOf(publicPathB);
+      if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+      if (aIdx !== -1) return -1;
+      if (bIdx !== -1) return 1;
+      return a.localeCompare(b);
+    });
+  }
 }
 
 const loadedImages = await Promise.all(myImagesKeys.map(async key => {
@@ -307,8 +306,8 @@ function disperseImages(images) {
   return result;
 }
 
-// For sequential couples, skip dispersal to preserve chronological order
-const finalShuffledImages = (hasSqFolders && isSequential) ? validImages : disperseImages(validImages);
+// If the story has sq subfolders, preserve strict chronological folder order (sq1 -> sq2 -> ...)
+const finalShuffledImages = hasSqFolders ? validImages : disperseImages(validImages);
 ---
 
 <Layout title={`${story.name1} & ${story.name2} | Wedding Story`} hideGlobalPreloader={true}>
@@ -442,78 +441,61 @@ const finalShuffledImages = (hasSqFolders && isSequential) ? validImages : dispe
     height: 100%;
     object-fit: cover;
     object-position: center;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: auto;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    animation: heroScale 14s ease-in-out infinite alternate;
   }
-  @keyframes heroScale {
-    from { transform: scale(1); }
-    to   { transform: scale(1.06); }
-  }
-  /* Soft vignette overlay — darkens edges, keeps centre clear */
+  /* Minimal clean overlay — keeps photo crystal clear and natural */
   .hero-bg-overlay {
     position: absolute;
     inset: 0;
     background: linear-gradient(
       to bottom,
-      rgba(26, 20, 16, 0.4) 0%,      /* Top dark vignette for navbar legibility */
-      rgba(245, 242, 237, 0.1) 40%,  /* Warm translucent center */
-      rgba(245, 242, 237, 0.85) 100% /* Grounding paper beige vignette */
+      rgba(0, 0, 0, 0.25) 0%,
+      rgba(0, 0, 0, 0) 30%,
+      rgba(0, 0, 0, 0) 70%,
+      rgba(0, 0, 0, 0.4) 100%
     );
     z-index: 2;
   }
 
-  /* Text overlay — centred with highly aesthetic, responsive radial mist shroud */
+  /* Text overlay — clean and readable without washing out the photo */
   .hero-content-overlay {
     position: relative;
     z-index: 10;
     max-width: 85vw;
     text-align: center;
-    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.5rem, 6vw, 5rem);
-    border-radius: 240px;
-    background: radial-gradient(
-      circle,
-      rgba(245, 242, 237, 0.85) 0%,
-      rgba(245, 242, 237, 0.5) 55%,
-      rgba(245, 242, 237, 0) 80%
-    );
+    padding: 1.5rem;
     margin: 0 auto;
-    backdrop-filter: blur(1px); /* Delicate micro-blur for extra editorial legibility */
   }
   .story-of-tag {
     font-family: var(--font-sans);
-    font-size: 0.65rem;
+    font-size: 0.68rem;
     letter-spacing: 0.5em;
-    color: rgba(182, 139, 64, 0.95);
-    margin-bottom: 1.2rem;
+    color: #e5b96a;
+    margin-bottom: 1rem;
     opacity: 0;
     display: block;
-    text-shadow: 0 1px 4px rgba(245, 242, 237, 0.9);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
   }
   .couple-display-title {
     font-family: var(--font-serif);
     font-size: clamp(3.2rem, 8.5vw, 7rem);
     font-weight: 300;
     line-height: 0.95;
-    margin: 0 0 1.2rem;
-    color: var(--ink); /* DARK COLOR for readability */
+    margin: 0 0 1rem;
+    color: #ffffff;
     opacity: 0;
     transform: translateY(24px);
-    letter-spacing: 0.01em;
-    text-shadow: 0 1px 8px rgba(245, 242, 237, 0.95),
-                 0 2px 20px rgba(245, 242, 237, 0.85);
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8), 0 4px 40px rgba(0, 0, 0, 0.6);
   }
-  .amp { font-style: italic; color: var(--gold); margin: 0 0.6rem; }
+  .amp { font-style: italic; color: #e5b96a; margin: 0 0.6rem; }
   .story-subtitle {
     font-family: var(--font-sans);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     letter-spacing: 0.4em;
-    color: rgba(26, 20, 16, 0.75); /* Dark charcoal tint instead of hard white to fit the theme */
+    color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
     opacity: 0;
-    text-shadow: 0 1px 4px rgba(245, 242, 237, 0.9);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
   }
 
   /* Scroll nudge — bottom-centre */
@@ -617,16 +599,12 @@ const finalShuffledImages = (hasSqFolders && isSequential) ? validImages : dispe
     height: 100%; 
     object-fit: cover; 
     border-radius: 0; 
-    image-rendering: -webkit-optimize-contrast;
     image-rendering: auto;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    transform: translateZ(0);
     transition: transform 0.8s var(--ease); 
   }
   .item-hover-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); color: white; display: flex; justify-content: space-between; opacity: 0; transition: 0.4s; }
   .gallery-item:hover .item-hover-info { opacity: 1; }
-  .gallery-item:hover img { transform: scale(1.03) translateZ(0); }
+  .gallery-item:hover img { transform: scale(1.03); }
 
   /* Navigation Footer */
   .next-story-nav { text-align: center; padding: 8rem 2rem; border-top: 1px solid rgba(0,0,0,0.05); }
@@ -684,11 +662,7 @@ const finalShuffledImages = (hasSqFolders && isSequential) ? validImages : dispe
     max-width: calc(100vw - 160px);
     max-height: calc(100vh - 80px);
     object-fit: contain;
-    image-rendering: -webkit-optimize-contrast;
     image-rendering: auto;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    transform: translateZ(0);
     transition: opacity 0.3s ease, transform 0.5s var(--ease);
   }
 
