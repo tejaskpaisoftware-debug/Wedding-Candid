@@ -791,11 +791,20 @@ const finalShuffledImages = hasSqFolders ? validImages : disperseImages(validIma
       order: 1;
     }
     .couple-display-title {
-      font-size: 2.5rem;
-      text-shadow: none;
+      font-size: clamp(2.2rem, 8vw, 3.2rem) !important;
+      font-weight: 700 !important;
+      color: var(--ink) !important;
+      text-shadow: none !important;
+      letter-spacing: 0.03em !important;
+      margin-bottom: 0.6rem !important;
     }
-    .story-of-tag, .story-subtitle {
-      text-shadow: none;
+    .story-of-tag {
+      color: var(--gold) !important;
+      text-shadow: none !important;
+    }
+    .story-subtitle {
+      color: var(--muted) !important;
+      text-shadow: none !important;
     }
     .hero-scroll-hint {
       position: relative;

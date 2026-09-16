@@ -178,28 +178,28 @@
       if (SELECTED_MODE === 'shutter') {
         tl.to('.blade', { 
           scaleY: 0, 
-          duration: 1.2, 
-          stagger: 0.08, 
+          duration: 0.5, 
+          stagger: 0.03, 
           ease: 'power3.out',
           transformOrigin: 'center bottom'
         })
-        .to(elements.shutterBar, { width: '100%', duration: 1.5, ease: 'power2.inOut' }, '-=0.8')
-        .to(elements.logos[0], { opacity: 1, scale: 1, duration: 1.2, ease: 'elastic.out(1, 0.5)' }, '-=1.2')
+        .to(elements.shutterBar, { width: '100%', duration: 0.8, ease: 'power2.inOut' }, '-=0.4')
+        .to(elements.logos[0], { opacity: 1, scale: 1, duration: 0.7, ease: 'elastic.out(1, 0.6)' }, '-=0.6')
         .to('.blade', { 
           scaleY: 1, 
-          duration: 0.8, 
-          stagger: 0.06, 
+          duration: 0.45, 
+          stagger: 0.03, 
           ease: 'power2.out',
           transformOrigin: 'center top'
         })
         .to(preloader, { 
-          scale: 1.1, 
-          rotate: -2, 
-          duration: 0.3, 
+          scale: 1.06, 
+          rotate: -1.5, 
+          duration: 0.18, 
           yoyo: true, 
           repeat: 1 
         })
-        .to(preloader, { yPercent: -100, duration: 1.2, ease: 'expo.inOut' });
+        .to(preloader, { yPercent: -100, duration: 0.7, ease: 'expo.inOut' });
       }
 
       // Lock scroll during animation
